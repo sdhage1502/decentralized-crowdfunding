@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "serve": "next serve"
   },
   "dependencies": {
     "@web3-react/core": "^8.2.3",
