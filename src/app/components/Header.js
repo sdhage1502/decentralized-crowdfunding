@@ -7,11 +7,7 @@ import { useWeb3 } from "../../context/Web3Context";
 
 const Header = () => {
 
-
     const { account, connectWallet, isLoading } = useWeb3();
-
-            
-      
 
     return (
         <header className="flex justify-between items-center px-6 py-4 bg-white shadow-md border-b-2 border-[#3247C5]">
