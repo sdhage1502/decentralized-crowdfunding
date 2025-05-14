@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/config"; // Ensure correct path
 
-const CampaignDetails = ({ params }) => {
+const CreateCampaign = ({ params }) => {
   const { id } = params; // Directly access params
   const [campaign, setCampaign] = useState(null);
   const router = useRouter();
@@ -60,4 +60,4 @@ const CampaignDetails = ({ params }) => {
   );
 };
 
-export default CampaignDetails;
+export default CreateCampaign;
