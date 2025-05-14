@@ -43,7 +43,7 @@ const CampaignDetails = ({ params }) => {
     fetchCampaign();
   }, [id, router]);
 
-  const campaignUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/campaign/${id}`;
+  const campaignUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/campaigns/${id}`;
 
   const handleContribute = async () => {
     if (!window.ethereum) {
