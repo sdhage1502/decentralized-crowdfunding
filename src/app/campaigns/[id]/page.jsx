@@ -309,13 +309,13 @@ const CampaignDetails = ({ params }) => {
           <div className="flex justify-center space-x-3">
             <button
               onClick={() => setIsShareOpen(true)}
-              className="px-4 py-1.5 bg-[#3247C5] text-white rounded-lg text-sm font-medium hover:bg-[#2a3aa0] transition-colors"
+              className="px-8 py-1.5 bg-[#3247C5] text-white rounded-lg text-xl font-medium hover:bg-[#2a3aa0] transition-colors"
             >
               Share Campaign
             </button>
             <button
               onClick={() => router.push("/dashboard")}
-              className="px-4 py-1.5 text-[#3247C5] border border-[#3247C5] rounded-lg text-sm font-medium hover:bg-[#3247C5] hover:text-white transition-colors"
+              className="px-8 py-1.5 text-[#3247C5] border border-[#3247C5] rounded-lg text-xl font-medium hover:bg-[#3247C5] hover:text-white transition-colors"
             >
               Back to All Campaigns
             </button>
