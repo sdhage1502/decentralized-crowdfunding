@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { ethers } from "ethers";
+import { contributeToWallet } from "../../../utils/contributeToWallet";
 import { db } from "../../../firebase/config";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -45,64 +45,48 @@ const CampaignDetails = ({ params }) => {
 
   const campaignUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/campaigns/${id}`;
 
-  const handleContribute = async () => {
-    if (!window.ethereum) {
-      toast.error(
-        <div>
-          MetaMask is required!
-          <a
-            href="https://metamask.io/download/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: '#fff', textDecoration: 'underline', fontWeight: 'bold', marginLeft: '5px' }}
-          >
-            Install MetaMask
-          </a>
-        </div>,
-        {
-          position: "top-center",
-          autoClose: 8000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-        }
-      );
-      return;
-    }
+const handleContribute = async () => {
+  if (!campaign?.walletAddress) {
+    toast.error("Campaign wallet address not found.");
+    return;
+  }
 
-    if (!campaign?.walletAddress) {
-      toast.error("Campaign wallet address not found!", { position: "top-center" });
-      return;
-    }
+  try {
+    setIsContributing(true);
+    await contributeToWallet(campaign.walletAddress, contributionAmount);
+    await updateCampaignStats(parseFloat(contributionAmount));
+    toast.success(`You contributed ${contributionAmount} ETH!`);
+    setContributionAmount("");
+  } catch (error) {
+   console.error("Contribution failed.");
+  } finally {
+    setIsContributing(false);
+  }
+};
 
-    if (!contributionAmount || isNaN(contributionAmount) || contributionAmount <= 0) {
-      toast.error("Please enter a valid amount to contribute.", { position: "top-center" });
-      return;
-    }
 
+  const updateCampaignStats = async (amount) => {
+    const campaignRef = doc(db, "campaigns", id);
+    await updateDoc(campaignRef, {
+      collected: (campaign.collected || 0) + amount,
+      contributors: (campaign.contributors || 0) + 1,
+    });
+
+    setCampaign((prev) => ({
+      ...prev,
+      collected: (prev.collected || 0) + amount,
+      contributors: (prev.contributors || 0) + 1,
+    }));
+  };
+
+  const handleUpiPaymentSuccess = async (amount) => {
     try {
-      setIsContributing(true);
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-
-      const amountInWei = ethers.parseEther(contributionAmount);
-      const tx = await signer.sendTransaction({
-        to: campaign.walletAddress,
-        value: amountInWei,
-      });
-
-      await tx.wait();
-      await updateCampaignStats(parseFloat(contributionAmount));
-      toast.success(`Successfully contributed ${contributionAmount} ETH!`, {
-        position: "top-center",
-      });
-      setContributionAmount("");
+      const approximateEthValue = amount / 250000;
+      await updateCampaignStats(approximateEthValue);
+      toast.success(`Successfully contributed ₹${amount}!`);
     } catch (error) {
-      console.error("Contribution failed:", error);
-      toast.error("Transaction failed. Please try again.", { position: "top-center" });
-    } finally {
-      setIsContributing(false);
+      console.error("Failed to update campaign after UPI payment:", error);
+      toast.error("Payment recorded, but campaign stats couldn't be updated.");
     }
   };
 
