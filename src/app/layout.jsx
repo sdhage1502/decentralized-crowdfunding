@@ -17,15 +17,30 @@ export default function RootLayout({ children }) {
         <Web3Provider>
           <Header />
           <Toaster
-            position="top-center" // ✅ set position globally
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#333',
-                color: '#fff',
-              },
-            }}
-          />
+        position="top-center"
+        toastOptions={{
+          // Default options for all toasts
+          style: {
+            fontSize: '16px',
+            fontWeight: '500',
+            textAlign: 'center',
+          },
+          success: {
+            duration: 4000,
+            theme: {
+              primary: 'green',
+              secondary: 'white',
+            },
+          },
+          error: {
+            duration: 5000,
+            theme: {
+              primary: 'red',
+              secondary: 'white',
+            },
+          },
+        }}
+      />
           {children}
         </Web3Provider>
       </body>
