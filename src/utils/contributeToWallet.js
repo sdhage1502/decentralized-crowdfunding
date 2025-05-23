@@ -42,8 +42,7 @@ export const contributeToWallet = async (walletAddress, amountEth) => {
     const contribution = Number(amountEth);
 
     if (contribution > userBalanceEth) {
-      toast.error(`Insufficient ETH balance. You have ${userBalanceEth.toFixed(4)} ETH available.`);
-      throw new Error("Insufficient balance");
+         throw new Error(`Insufficient ETH balance. You have ${userBalanceEth.toFixed(4)} ETH available.`);
     }
 
     // Convert to Wei and send transaction
