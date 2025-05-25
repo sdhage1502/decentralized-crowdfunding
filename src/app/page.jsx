@@ -4,6 +4,7 @@ import React from "react";
 import HeroSection from "./components/HeroSection";
 import { useWeb3 } from "../context/Web3Context";
 import Aboutus from "./about-us/page";
+import Footer from "./components/Footer";
 const HomePage = () => {
   const { isLoading } = useWeb3();
 
@@ -19,6 +20,7 @@ const HomePage = () => {
           </div>
         )}
         <Aboutus />
+        <Footer/>
       </main>
     </div>
   );
