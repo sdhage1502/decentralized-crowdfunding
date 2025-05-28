@@ -121,7 +121,7 @@ const programmingLanguages = [
                 </a>
                 <a
                   className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium text-sm"
-                  href="https://sdhage1502.github.io/MyPortfolio/" // Replace with actual portfolio URL
+                  href="" // Replace with actual portfolio URL
                   target="_blank"
                   rel="noopener noreferrer"
                 >

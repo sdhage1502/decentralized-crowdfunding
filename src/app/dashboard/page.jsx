@@ -15,7 +15,7 @@ const Dashboard = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const campaignsPerPage = 3;
+  const campaignsPerPage = 6;
 
 
   const router = useRouter();
