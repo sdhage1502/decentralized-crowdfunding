@@ -98,8 +98,10 @@ const AboutDeveloper = () => {
                   Download Resume
                 </a>
                 <a
+
                   className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium text-sm"
                   href="https://sdhage1502.github.io/MyPortfolio/"
+
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -8,7 +8,7 @@ A **decentralized crowdfunding platform** built using **Next.js (App Router)** o
 ## 🚀 Live Demo
 
 🔗 [Visit the Live App](https://decentralized-crowdfunding-woad.vercel.app)  
-📁 [Smart Contract Repo](https://github.com/sdhage1502/decentralized-crowdfunding)
+
 
 ---
 
