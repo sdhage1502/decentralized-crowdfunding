@@ -9,6 +9,14 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      // Allow img elements (we use them alongside next/image in some campaign cards)
+      "@next/next/no-img-element": "off",
+    },
+  },
+];
 
 export default eslintConfig;

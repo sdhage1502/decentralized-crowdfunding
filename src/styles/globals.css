@@ -1,10 +1,14 @@
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+@import "./tokens.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary-color: #3247c5;
-  --secondary-color: #28a745;
+  --primary-color: var(--color-accent);
+  --secondary-color: var(--color-success);
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
 * {
@@ -16,5 +20,21 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
+  background-color: var(--color-paper);
+  background-image: 
+    linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+  background-size: 70px 70px;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
 }
+
+:focus-visible {
+  outline: 2px solid var(--color-focus) !important;
+  outline-offset: 2px !important;
+  transition: none !important; /* Focus rings must appear instantly */
+}
+
+
+

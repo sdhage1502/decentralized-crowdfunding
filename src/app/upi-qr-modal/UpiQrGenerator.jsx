@@ -43,7 +43,7 @@ const UpiQrGenerator = ({ upiId, amount, name = "", merchantCode = "" }) => {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="bg-white p-4 rounded-lg shadow-lg border-2 border-gray-200">
+      <div className="bg-white p-4 rounded-xl border border-rule-strong shadow-sm">
         <QRCodeSVG 
           value={qrValue}
           size={240}
@@ -55,17 +55,17 @@ const UpiQrGenerator = ({ upiId, amount, name = "", merchantCode = "" }) => {
       </div>
       
       <div className="mt-4 w-full">
-        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-          <span className="font-medium text-gray-700">{upiId}</span>
+        <div className="flex items-center justify-between bg-paper-3-glass backdrop-blur-sm p-3 rounded-lg border border-rule">
+          <span className="font-semibold text-ink text-xs truncate mr-4">{upiId}</span>
           <button 
             onClick={handleCopyUpi}
-            className="bg-[#3247C5] text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+            className="bg-accent hover:bg-accent-hover text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
         </div>
         
-        <div className="text-sm text-gray-500 mt-2 text-center">
+        <div className="text-[10px] text-ink-2 mt-2 text-center font-semibold uppercase tracking-wider">
           Scan with any UPI app to pay
         </div>
       </div>

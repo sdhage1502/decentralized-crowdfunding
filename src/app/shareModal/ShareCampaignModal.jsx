@@ -1,7 +1,6 @@
-// shareModal/ShareCampaignModal.jsx
-'use client;'
+'use client';
 
-import { use, useState } from "react";
+import { useState } from "react";
 import { 
   Facebook, 
   Twitter, 
@@ -12,7 +11,7 @@ import {
   Copy, 
   Check,
   X,
-  Link,
+  Link as LinkIcon,
   Share,
   Heart,
   Megaphone
@@ -45,44 +44,38 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
   const icons = [
     { 
       name: "Facebook", 
-      icon: <Facebook size={20} className="text-white fill-current" />, 
+      icon: <Facebook size={20} className="text-white fill-current" aria-hidden="true" />, 
       bg: "bg-[#1877F2] hover:bg-[#166FE5]",
-      hoverScale: "hover:scale-110",
       description: "Share on Facebook"
     },
     { 
       name: "Twitter", 
-      icon: <Twitter size={20} className="text-white fill-current" />, 
+      icon: <Twitter size={20} className="text-white fill-current" aria-hidden="true" />, 
       bg: "bg-[#1DA1F2] hover:bg-[#1A91DA]",
-      hoverScale: "hover:scale-110",
       description: "Post on Twitter"
     },
     { 
       name: "WhatsApp", 
-      icon: <MessageCircle size={20} className="text-white" />, 
+      icon: <MessageCircle size={20} className="text-white" aria-hidden="true" />, 
       bg: "bg-[#25D366] hover:bg-[#22C55E]",
-      hoverScale: "hover:scale-110",
       description: "Share via WhatsApp"
     },
     { 
       name: "LinkedIn", 
-      icon: <Linkedin size={20} className="text-white fill-current" />, 
+      icon: <Linkedin size={20} className="text-white fill-current" aria-hidden="true" />, 
       bg: "bg-[#0A66C2] hover:bg-[#095BA6]",
-      hoverScale: "hover:scale-110",
       description: "Share on LinkedIn"
     },
     { 
       name: "Telegram", 
-      icon: <Send size={20} className="text-white" />, 
+      icon: <Send size={20} className="text-white" aria-hidden="true" />, 
       bg: "bg-[#0088CC] hover:bg-[#007BB5]",
-      hoverScale: "hover:scale-110",
       description: "Send via Telegram"
     },
     { 
       name: "Email", 
-      icon: <Mail size={20} className="text-white" />, 
+      icon: <Mail size={20} className="text-white" aria-hidden="true" />, 
       bg: "bg-[#EA4335] hover:bg-[#DB3E2F]",
-      hoverScale: "hover:scale-110",
       description: "Share via Email"
     },
   ];
@@ -90,80 +83,88 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative">
-        {/* Close button */}
+    <div 
+      className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-campaign-title"
+    >
+      <div className="bg-paper-glass backdrop-blur-md border border-rule rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+          aria-label="Close share dialog"
+          className="absolute top-4 right-4 p-2 text-ink-2 hover:text-ink hover:bg-paper-2-glass hover:backdrop-blur rounded-full transition-all duration-200"
         >
-          <X size={20} />
+          <X size={20} aria-hidden="true" />
         </button>
 
-        <h3 className="text-2xl font-bold mb-2 text-center text-gray-800 flex items-center justify-center gap-2">
-          <Heart size={24} className="text-red-500 fill-current" />
+        <h3 
+          id="share-campaign-title"
+          className="text-xl sm:text-2xl font-bold mb-2 text-center text-ink flex items-center justify-center gap-2"
+        >
+          <Heart size={22} className="text-error fill-current" aria-hidden="true" />
           Share This Campaign
         </h3>
-        <p className="text-gray-600 text-center mb-8 text-sm flex items-center justify-center gap-1">
-          <Megaphone size={16} className="text-blue-500" />
+        <p className="text-ink-2 text-center mb-6 text-xs sm:text-sm flex items-center justify-center gap-1.5">
+          <Megaphone size={16} className="text-accent" aria-hidden="true" />
           Help spread the word and make a difference
         </p>
 
-        {/* Social media icons */}
-        <div className="mb-8 grid grid-cols-3 gap-1">
-          {icons.map(({ name, icon, bg, hoverScale, description }) => (
+        {/* Social media button grid */}
+        <div className="mb-6 grid grid-cols-3 gap-2">
+          {icons.map(({ name, icon, bg, description }) => (
             <button
               key={name}
               onClick={shareHandlers[name]}
-              className="flex flex-col items-center justify-center p-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group relative"
-              title={description}
+              className="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-paper-2-glass hover:backdrop-blur transition-all duration-200 group"
+              aria-label={description}
             >
-              <div className={`flex items-center justify-center w-14 h-14 ${bg} ${hoverScale} rounded-full mb-3 transition-all duration-200 shadow-lg group-hover:shadow-xl`}>
+              <div className={`flex items-center justify-center w-12 h-12 ${bg} rounded-full mb-2 transition-all duration-200 shadow-md`}>
                 {icon}
               </div>
-              <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">{name}</span>
-              <span className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">{description}</span>
+              <span className="text-xs font-semibold text-ink-2 group-hover:text-ink transition-colors duration-200">{name}</span>
             </button>
           ))}
         </div>
 
         {/* Copy link section */}
         <div className="mb-6">
-          <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <Link size={16} className="text-gray-500" />
+          <label htmlFor="campaignUrl" className="text-xs font-semibold text-ink-2 mb-2 flex items-center gap-2">
+            <LinkIcon size={14} className="text-ink-2" aria-hidden="true" />
             Campaign Link
           </label>
-          <div className="flex items-center shadow-sm">
+          <div className="flex items-center shadow-sm rounded-lg overflow-hidden border border-rule-strong">
             <input
+              id="campaignUrl"
               type="text"
               value={campaignUrl}
               readOnly
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="flex-1 px-3 py-2 bg-paper-2-glass backdrop-blur text-ink text-xs focus:outline-none"
             />
             <button
               onClick={handleCopyLink}
-              className={`px-4 py-3 text-white rounded-r-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`px-4 py-2 text-white font-bold text-xs transition-all duration-200 shrink-0 ${
                 isCopied 
-                  ? 'bg-green-500 hover:bg-green-600' 
-                  : 'bg-[#3247C5] hover:bg-[#2a3aa0]'
+                  ? 'bg-success hover:bg-green-700' 
+                  : 'bg-accent hover:bg-accent-hover'
               }`}
             >
-              <div className="flex items-center gap-2">
-                {isCopied ? <Check size={16} /> : <Copy size={16} />}
-                <span className="text-sm">{isCopied ? "Copied!" : "Copy"}</span>
+              <div className="flex items-center gap-1.5">
+                {isCopied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                <span>{isCopied ? "Copied!" : "Copy"}</span>
               </div>
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-            <Share size={12} />
+          <p className="text-[10px] text-ink-2 mt-2 flex items-center gap-1 font-medium">
+            <Share size={10} aria-hidden="true" />
             Anyone with this link can view the campaign
           </p>
         </div>
 
-        {/* Close button */}
+        {/* Bottom Close button */}
         <button
           onClick={onClose}
-          className="w-full px-6 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="w-full px-6 h-10 bg-paper-3-glass backdrop-blur-sm border border-rule-strong text-ink rounded-lg font-bold text-xs hover:bg-paper-2-glass hover:backdrop-blur transition-all duration-200"
         >
           Close
         </button>

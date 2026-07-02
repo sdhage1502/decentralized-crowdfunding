@@ -1,29 +1,43 @@
 'use client';
 import React from 'react';
-import { Rocket, PiggyBank } from 'lucide-react';
+import { Rocket, BarChart3 } from 'lucide-react';
 
 const PromotionalCard = () => (
-  <section className="w-full px-4 py-20">
-    <div className="max-w-4xl mx-auto rounded-3xl border border-indigo-200 shadow-2xl p-10 text-center bg-white ">
-      <div className="mb-8">
-        <img src="/logo.png" alt="DApp Logo" className="mx-auto w-44 h-auto drop-shadow-md" />
-      </div>
-      <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
-        Fueling Ideas.
-        <span className="block bg-gradient-to-r from-indigo-600 to-sky-600 bg-clip-text text-transparent mt-2">
-          Transforming Lives.
-        </span>
-      </h2>
-      <p className="text-lg text-gray-700 mb-10 max-w-2xl mx-auto">
-        Empower innovation and create social impact directly on the blockchain. <strong>Launch your campaign</strong> or <strong>become a vital backer</strong> today!
-      </p>
-      <div className="flex flex-col sm:flex-row justify-center gap-4">
-        <a href="/campaigns/create" className="inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-full font-bold text-lg shadow-lg hover:bg-indigo-700 transition">
-          <Rocket size={24} /> Start a Campaign
-        </a>
-        <a href="/dashboard" className="inline-flex items-center gap-3 px-8 py-4 border text-gray-800 bg-white rounded-full font-bold text-lg shadow hover:bg-gray-50 transition">
-          <PiggyBank size={24} className="text-green-500" /> Back a Campaign
-        </a>
+  <section className="w-full px-6 py-16 sm:py-20 lg:py-24 bg-transparent">
+    <div className="max-w-4xl mx-auto rounded-2xl border border-rule-strong bg-paper-2-glass backdrop-blur p-8 sm:p-12 text-center relative overflow-hidden">
+      {/* Subtle decoration blur */}
+      <div className="absolute -top-20 -right-20 w-60 h-60 bg-accent-bg rounded-full filter blur-3xl opacity-40 pointer-events-none"></div>
+      <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-success-bg rounded-full filter blur-3xl opacity-35 pointer-events-none"></div>
+
+      <div className="relative z-10 space-y-6">
+        <div className="mb-6 flex justify-center">
+          <img src="/logo.png" alt="DApp Logo" className="h-10 w-auto opacity-95" />
+        </div>
+        
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight leading-tight">
+          Fueling Ideas. <span className="text-accent block sm:inline">Transforming Lives.</span>
+        </h2>
+        
+        <p className="text-sm sm:text-base text-ink-2 max-w-xl mx-auto leading-relaxed">
+          Empower innovation and create social impact directly on the blockchain. Launch your campaign or become a vital backer today with decentralized safety.
+        </p>
+        
+        <div className="flex flex-wrap justify-center gap-3 pt-4">
+          <a
+            href="/campaigns/create"
+            className="inline-flex items-center gap-2 px-6 h-11 bg-accent hover:bg-accent-hover text-white rounded-lg font-bold text-sm shadow-sm transition-all duration-200"
+          >
+            <Rocket size={16} aria-hidden="true" />
+            Start a Campaign
+          </a>
+          <a
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-6 h-11 bg-success hover:bg-green-700 text-white rounded-lg font-bold text-sm shadow-sm transition-all duration-200"
+          >
+            <BarChart3 size={16} aria-hidden="true" />
+            Back a Campaign
+          </a>
+        </div>
       </div>
     </div>
   </section>

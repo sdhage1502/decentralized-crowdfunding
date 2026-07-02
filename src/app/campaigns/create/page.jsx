@@ -1,11 +1,19 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { db } from '../../../firebase/config';
+import { db, storage } from '../../../firebase/config';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { Upload, X, CheckCircle, Clock, Mail, Phone, FileText, AlertCircle, Wallet, Link, Camera } from 'lucide-react';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { useWeb3 } from '../../../context/Web3Context';
+import {
+  Upload, X, CheckCircle, Clock, Mail, Phone, FileText,
+  AlertCircle, Wallet, Link, Camera, Loader2, Sparkles, Check
+} from 'lucide-react';
 
 const CreateCampaign = () => {
+  const { account } = useWeb3();
+  const router = useRouter();
+
   const [campaign, setCampaign] = useState({
     title: "",
     description: "",
@@ -21,17 +29,25 @@ const CreateCampaign = () => {
     documents: ""
   });
 
+  // Auto-fill connected wallet address
+  useEffect(() => {
+    if (account) {
+      setCampaign(prev => ({ ...prev, walletAddress: account }));
+    }
+  }, [account]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [uploadType, setUploadType] = useState('url');
-  const [uploadedImage, setUploadedImage] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
-  const router = useRouter();
 
   const categories = [
     "Medical Emergency",
-    "Education", 
+    "Education",
     "Animal Welfare",
     "Disaster Relief",
     "Community Development",
@@ -46,50 +62,99 @@ const CreateCampaign = () => {
     setCampaign({ ...campaign, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = (e) => {
+  /**
+   * Upload image file to Firebase Storage and return the public download URL.
+   */
+  const uploadImageToStorage = (file) => {
+    return new Promise((resolve, reject) => {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storageRef = ref(storage, `campaigns/${timestamp}_${safeName}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          setUploadProgress(progress);
+        },
+        (error) => {
+          setIsUploading(false);
+          reject(error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setIsUploading(false);
+          setUploadProgress(100);
+          resolve(downloadURL);
+        }
+      );
+    });
+  };
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB');
-        return;
-      }
-      
-      setUploadedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-        setCampaign({ ...campaign, image: e.target.result });
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+
+    setUploadedFile(file);
+
+    try {
+      const downloadURL = await uploadImageToStorage(file);
+      setCampaign((prev) => ({ ...prev, image: downloadURL }));
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      alert('Failed to upload image. Please try again or use an image URL.');
+      clearImage();
     }
   };
 
   const handleImageUrl = (e) => {
     const url = e.target.value;
     setCampaign({ ...campaign, image: url });
-    if (url) {
-      setImagePreview(url);
-    } else {
-      setImagePreview('');
-    }
+    setImagePreview(url || '');
   };
 
   const clearImage = () => {
-    setUploadedImage(null);
+    setUploadedFile(null);
     setImagePreview('');
-    setCampaign({ ...campaign, image: '' });
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setUploadProgress(0);
+    setCampaign((prev) => ({ ...prev, image: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isUploading) {
+      alert('Please wait for the image to finish uploading.');
+      return;
+    }
+
+    if (!campaign.image) {
+      alert('Please provide a campaign image.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const campaignData = {
         ...campaign,
+        amount: parseFloat(campaign.amount),
         status: "pending",
         createdAt: serverTimestamp(),
         dateCreated: new Date().toISOString(),
@@ -103,7 +168,6 @@ const CreateCampaign = () => {
 
       const docRef = await addDoc(collection(db, "campaigns"), campaignData);
       console.log("Campaign submitted for review with ID:", docRef.id);
-      
       setShowModal(true);
     } catch (error) {
       console.error("Error submitting campaign:", error);
@@ -113,69 +177,56 @@ const CreateCampaign = () => {
     }
   };
 
+  const resetForm = () => {
+    setCampaign({
+      title: "",
+      description: "",
+      amount: "",
+      image: "",
+      walletAddress: account || "",
+      upiId: "",
+      email: "",
+      phone: "",
+      fullName: "",
+      category: "",
+      urgency: "medium",
+      documents: ""
+    });
+    clearImage();
+  };
+
   const SuccessModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-6">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100">
+    <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-fadeIn">
+      <div className="bg-paper-glass backdrop-blur-md border border-rule rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
         <div className="p-8 text-center">
-          <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
-            <CheckCircle className="w-12 h-12 text-green-600" />
+          <div className="mx-auto w-16 h-16 bg-success-bg border border-success-border rounded-full flex items-center justify-center mb-6">
+            <Check className="w-8 h-8 text-success" />
           </div>
-          
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Campaign Submitted!
-          </h2>
-          
-          <p className="text-gray-600 mb-6">
-            Thank you for submitting your campaign, <strong>{campaign.fullName}</strong>!
+          <h2 className="text-2xl font-bold text-ink mb-2">Campaign Submitted!</h2>
+          <p className="text-ink-2 text-sm mb-6">
+            Thank you, <strong className="text-ink">{campaign.fullName}</strong>. Your campaign submission is pending review.
           </p>
 
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 text-left">
+          <div className="bg-accent-bg border-l-4 border-accent p-4 mb-4 text-left rounded-r-lg">
             <div className="flex items-center mb-2">
-              <Clock className="w-5 h-5 text-blue-600 mr-2" />
-              <span className="font-semibold text-blue-800">Under Review</span>
+              <Clock className="w-4 h-4 text-accent mr-2" />
+              <span className="font-semibold text-accent text-sm">Under Review</span>
             </div>
-            <p className="text-blue-700 text-sm">
-              Our team will review your campaign within 24-48 hours. You'll receive an email at <strong>{campaign.email}</strong> with the approval or rejection status.
+            <p className="text-ink-2 text-xs leading-relaxed">
+              Our team will review your campaign details within 24–48 hours. Updates will be sent to <strong className="text-ink">{campaign.email}</strong>.
             </p>
           </div>
 
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6 text-left">
-            <div className="flex items-center mb-2">
-              <Mail className="w-5 h-5 text-green-600 mr-2" />
-              <span className="font-semibold text-green-800">Stay Informed</span>
-            </div>
-            <p className="text-green-700 text-sm">
-              Please check your inbox (and spam/junk folder) for updates. If approved, your campaign will go live on our platform!
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 mt-6">
             <button
               onClick={() => router.push('/dashboard')}
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="w-full bg-accent hover:bg-accent-hover text-white py-2.5 px-6 rounded-lg transition-all duration-200 font-medium text-sm shadow-sm"
             >
-              View All Campaigns
+              View Dashboard
             </button>
             <button
-              onClick={() => {
-                setShowModal(false);
-                setCampaign({
-                  title: "",
-                  description: "",
-                  amount: "",
-                  image: "",
-                  walletAddress: "",
-                  upiId: "",
-                  email: "",
-                  phone: "",
-                  fullName: "",
-                  category: "",
-                  urgency: "medium",
-                  documents: ""
-                });
-                clearImage();
-              }}
-              className="w-full bg-gray-200 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              onClick={() => { setShowModal(false); resetForm(); }}
+              className="w-full bg-paper-2-glass backdrop-blur hover:bg-paper-3-glass border border-rule text-ink py-2.5 px-6 rounded-lg transition-all duration-200 font-medium text-sm"
             >
               Create Another Campaign
             </button>
@@ -186,284 +237,367 @@ const CreateCampaign = () => {
   );
 
   return (
-    <section className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-3xl mx-auto p-8 bg-white border-4 border-black rounded-lg shadow-xl">
-        <div className="mb-6">
-          <h2 className="text-4xl font-bold text-blue-700 mb-2">Create a Campaign</h2>
-          <p className="text-gray-600">
-            Your campaign will be reviewed by our team before going live. Please provide accurate information.
+    <section className="py-12 px-6 bg-transparent min-h-screen">
+      <div className="max-w-3xl mx-auto">
+        {/* Breadcrumb & Header */}
+        <div className="mb-10 text-center sm:text-left">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight mb-3">
+            Start a <span className="text-accent">Campaign</span>
+          </h1>
+          <p className="text-ink-2 text-sm max-w-xl">
+            Fill out the details below. Once approved by our team, your campaign will be deployed on-chain and open for contributions.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-            <h3 className="text-xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
-              <Phone className="w-5 h-5" />
-              Personal Information
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Personal Information Card */}
+          <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-4">
+            <h3 className="text-md font-bold text-ink flex items-center gap-2 pb-2 border-b border-rule">
+              <Mail className="w-4 h-4 text-accent" />
+              Creator Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="fullName"
-                value={campaign.fullName}
-                onChange={handleChange}
-                placeholder="Full Name *"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                value={campaign.email}
-                onChange={handleChange}
-                placeholder="Gmail Address *"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
-              <input
-                type="tel"
-                name="phone"
-                value={campaign.phone}
-                onChange={handleChange}
-                placeholder="Phone Number *"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
+              <div>
+                <label htmlFor="fullName" className="block text-xs font-semibold text-ink-2 mb-1">Full Name *</label>
+                <input
+                  id="fullName"
+                  type="text"
+                  name="fullName"
+                  value={campaign.fullName}
+                  onChange={handleChange}
+                  placeholder="e.g. John Doe"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-xs font-semibold text-ink-2 mb-1">Email Address *</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={campaign.email}
+                  onChange={handleChange}
+                  placeholder="e.g. name@domain.com"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor="phone" className="block text-xs font-semibold text-ink-2 mb-1">Phone Number *</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  value={campaign.phone}
+                  onChange={handleChange}
+                  placeholder="e.g. +91 9876543210"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  required
+                  aria-required="true"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-            <h3 className="text-xl font-semibold text-green-800 mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Campaign Details
+          {/* Campaign Details Card */}
+          <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-4">
+            <h3 className="text-md font-bold text-ink flex items-center gap-2 pb-2 border-b border-rule">
+              <FileText className="w-4 h-4 text-accent" />
+              Campaign Specs
             </h3>
+            
             <div className="space-y-4">
-              <input
-                type="text"
-                name="title"
-                value={campaign.title}
-                onChange={handleChange}
-                placeholder="Campaign Title *"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <select
-                  name="category"
-                  value={campaign.category}
+              <div>
+                <label htmlFor="title" className="block text-xs font-semibold text-ink-2 mb-1">Campaign Title *</label>
+                <input
+                  id="title"
+                  type="text"
+                  name="title"
+                  value={campaign.title}
                   onChange={handleChange}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="e.g. Support for High School Football Team Kits"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
                   required
-                >
-                  <option value="">Select Category *</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-
-                <select
-                  name="urgency"
-                  value={campaign.urgency}
-                  onChange={handleChange}
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="low">Low Urgency</option>
-                  <option value="medium">Medium Urgency</option>
-                  <option value="high">High Urgency</option>
-                  <option value="critical">Critical</option>
-                </select>
+                  aria-required="true"
+                />
               </div>
 
-              <textarea
-                name="description"
-                value={campaign.description}
-                onChange={handleChange}
-                placeholder="Detailed Campaign Description (Why do you need this funding? How will it be used?) *"
-                rows="6"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="category" className="block text-xs font-semibold text-ink-2 mb-1">Category *</label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={campaign.category}
+                    onChange={handleChange}
+                    className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                    required
+                    aria-required="true"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <input
-                type="number"
-                name="amount"
-                value={campaign.amount}
-                onChange={handleChange}
-                placeholder="Target Amount (ETH) *"
-                step="0.001"
-                min="0.001"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
+                <div>
+                  <label htmlFor="urgency" className="block text-xs font-semibold text-ink-2 mb-1">Urgency Level *</label>
+                  <select
+                    id="urgency"
+                    name="urgency"
+                    value={campaign.urgency}
+                    onChange={handleChange}
+                    className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                    required
+                    aria-required="true"
+                  >
+                    <option value="low">Low Urgency</option>
+                    <option value="medium">Medium Urgency</option>
+                    <option value="high">High Urgency</option>
+                    <option value="critical">Critical (Immediate Help Required)</option>
+                  </select>
+                </div>
+              </div>
 
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Campaign Image *
-                </label>
+              <div>
+                <label htmlFor="amount" className="block text-xs font-semibold text-ink-2 mb-1">Funding Target (ETH) *</label>
+                <input
+                  id="amount"
+                  type="number"
+                  name="amount"
+                  value={campaign.amount}
+                  onChange={handleChange}
+                  placeholder="e.g. 1.5"
+                  step="0.001"
+                  min="0.001"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  required
+                  aria-required="true"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-xs font-semibold text-ink-2 mb-1">Campaign Description *</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={campaign.description}
+                  onChange={handleChange}
+                  placeholder="Tell your story. Why do you need funds, and how will they be used? Be specific."
+                  rows="5"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent leading-relaxed"
+                  required
+                  aria-required="true"
+                />
+              </div>
+
+              {/* Image Input Section */}
+              <div className="space-y-2">
+                <label htmlFor={uploadType === 'url' ? 'campaignImage' : 'campaignFile'} className="block text-xs font-semibold text-ink-2">Campaign Cover Photo *</label>
                 
-                <div className="flex gap-2 mb-4">
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setUploadType('url')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    onClick={() => { setUploadType('url'); clearImage(); }}
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${
                       uploadType === 'url'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-accent border-accent text-white'
+                        : 'bg-paper-glass backdrop-blur-md border-rule text-ink hover:bg-paper-3-glass'
                     }`}
                   >
-                    <Link className="w-4 h-4 inline mr-2" />
-                    Image URL
+                    <Link className="w-3.5 h-3.5 inline mr-1.5" />
+                    Provide Image URL
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUploadType('file')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    onClick={() => { setUploadType('file'); clearImage(); }}
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${
                       uploadType === 'file'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-accent border-accent text-white'
+                        : 'bg-paper-glass backdrop-blur-md border-rule text-ink hover:bg-paper-3-glass'
                     }`}
                   >
-                    <Camera className="w-4 h-4 inline mr-2" />
-                    Upload File
+                    <Camera className="w-3.5 h-3.5 inline mr-1.5" />
+                    Upload Local File
                   </button>
                 </div>
 
                 {uploadType === 'url' ? (
                   <input
+                    id="campaignImage"
                     type="url"
                     value={campaign.image}
                     onChange={handleImageUrl}
-                    placeholder="Enter image URL *"
-                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    placeholder="https://images.unsplash.com/... or any static image link"
+                    className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
                     required
+                    aria-required="true"
                   />
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
+                  <div className="border-2 border-dashed border-rule-strong rounded-lg p-5 text-center bg-paper-glass backdrop-blur-md hover:border-accent transition-colors">
                     <input
+                      id="campaignFile"
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
                       className="hidden"
-                      required={!campaign.image}
                     />
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-col items-center gap-2 mx-auto text-gray-600 hover:text-blue-600 transition-colors"
+                      disabled={isUploading}
+                      className="flex flex-col items-center gap-1 mx-auto text-ink-2 hover:text-accent transition-colors disabled:opacity-50"
                     >
-                      <Upload className="w-8 h-8" />
-                      <span className="font-medium">Click to upload image</span>
-                      <span className="text-sm text-gray-500">PNG, JPG, GIF up to 5MB</span>
+                      {isUploading ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-accent mb-1" />
+                      ) : (
+                        <Upload className="w-6 h-6 mb-1" />
+                      )}
+                      <span className="text-xs font-semibold">
+                        {isUploading ? `Uploading image (${uploadProgress}%)` : 'Click to select image file'}
+                      </span>
+                      <span className="text-[10px] opacity-75">PNG, JPG, WebP up to 5MB</span>
                     </button>
+
+                    {isUploading && (
+                      <div className="mt-2 w-full bg-paper-3-glass backdrop-blur-sm rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-accent h-1.5 rounded-full transition-all duration-200"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {imagePreview && (
-                  <div className="relative">
+                  <div className="relative mt-2 rounded-lg overflow-hidden border border-rule-strong">
                     <img
                       src={imagePreview}
-                      alt="Campaign preview"
-                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                      alt="Upload Preview"
+                      className="w-full h-40 object-cover"
                     />
                     <button
                       type="button"
                       onClick={clearImage}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition-colors"
+                      aria-label="Remove image"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
               </div>
 
-              <textarea
-                name="documents"
-                value={campaign.documents}
-                onChange={handleChange}
-                placeholder="Supporting Documents URLs (Medical reports, bills, certificates etc. - separate multiple URLs with commas)"
-                rows="3"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-              />
+              <div>
+                <label htmlFor="documents" className="block text-xs font-semibold text-ink-2 mb-1">Supporting Document URLs (Optional)</label>
+                <input
+                  id="documents"
+                  type="text"
+                  name="documents"
+                  value={campaign.documents}
+                  onChange={handleChange}
+                  placeholder="Medical reports, bills, receipts (comma separated URLs)"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="bg-yellow-50 p-6 rounded-lg border-2 border-yellow-200">
-            <h3 className="text-xl font-semibold text-yellow-800 mb-4 flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              Payment Information
+          {/* Payment Details Card */}
+          <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-4">
+            <h3 className="text-md font-bold text-ink flex items-center gap-2 pb-2 border-b border-rule">
+              <Wallet className="w-4 h-4 text-accent" />
+              Settlement Credentials
             </h3>
+            
             <div className="space-y-4">
-              <input
-                type="text"
-                name="walletAddress"
-                value={campaign.walletAddress}
-                onChange={handleChange}
-                placeholder="Your Ethereum Wallet Address *"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
-              <input
-                type="text"
-                name="upiId"
-                value={campaign.upiId}
-                onChange={handleChange}
-                placeholder="Your UPI ID (e.g. name@paytm, name@phonepe) *"
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                required
-              />
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="walletAddress" className="block text-xs font-semibold text-ink-2">Creator Wallet Address *</label>
+                  {account && (
+                    <span className="text-[10px] text-success flex items-center gap-1 font-medium bg-success-bg px-2 py-0.5 rounded-full border border-success-border">
+                      <Check size={10} /> MetaMask Connected
+                    </span>
+                  )}
+                </div>
+                <input
+                  id="walletAddress"
+                  type="text"
+                  name="walletAddress"
+                  value={campaign.walletAddress}
+                  onChange={handleChange}
+                  placeholder="0x..."
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-xs font-mono text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  required
+                  aria-required="true"
+                  aria-describedby="walletAddress-hint"
+                />
+                <p id="walletAddress-hint" className="text-[10px] text-ink-2 mt-1">
+                  This address will receive all ETH withdrawals from the on-chain smart contract.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="upiId" className="block text-xs font-semibold text-ink-2 mb-1">UPI ID * (For off-chain donations)</label>
+                <input
+                  id="upiId"
+                  type="text"
+                  name="upiId"
+                  value={campaign.upiId}
+                  onChange={handleChange}
+                  placeholder="e.g. creator@upi"
+                  className="w-full p-2.5 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                  required
+                  aria-required="true"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-300">
-            <div className="mb-4">
-              <label className="flex items-start space-x-3">
-                <input type="checkbox" required className="mt-1" />
-                <span className="text-sm text-gray-700">
-                  I confirm that all information provided is accurate and I agree to the platform's terms and conditions. 
-                  I understand that my campaign will be reviewed before going live. *
-                </span>
+          {/* Submission and Terms */}
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-1">
+              <input 
+                id="acceptTerms"
+                type="checkbox" 
+                required 
+                className="mt-1 accent-accent" 
+              />
+              <label htmlFor="acceptTerms" className="text-xs text-ink-2 leading-relaxed select-none cursor-pointer">
+                I attest that all documents, details, and goals supplied are accurate and true. I understand this campaign requires admin review and manual smart contract registration prior to public display.
               </label>
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className={`w-full p-4 text-white font-bold rounded-lg shadow-lg transition-colors ${
-                isSubmitting 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-[#28A745] hover:bg-[#218838]'
-              }`}
+              disabled={isSubmitting || isUploading}
+              className="w-full py-3 text-white font-bold rounded-lg shadow-sm transition-all duration-200 text-sm flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Submitting for Review...
-                </div>
+                <>
+                  <Loader2 className="animate-spin h-4 w-4" />
+                  Submitting to Database...
+                </>
+              ) : isUploading ? (
+                <>
+                  <Loader2 className="animate-spin h-4 w-4" />
+                  Waiting for image upload...
+                </>
               ) : (
-                'Submit Campaign for Review'
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Submit Campaign for Review
+                </>
               )}
             </button>
           </div>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span>24-48 hour review</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-blue-600" />
-              <span>Email notification</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600" />
-              <span>Provide accurate info</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {showModal && <SuccessModal />}
