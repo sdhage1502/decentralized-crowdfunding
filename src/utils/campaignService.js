@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../firebase/config";
 
 /**
@@ -16,21 +16,21 @@ export const fetchCampaignById = async (id) => {
 };
 
 /**
- * Update collected amount and contributor count.
+ * Atomically update collected amount and contributor count using Firestore increment().
+ * This prevents race conditions when multiple contributions happen concurrently.
+ * Both `collected` and `raised` are kept in sync so admin panel and public dashboard
+ * always read the same value.
  */
-export const updateCampaignStats = async (id, campaign, amount) => {
+export const updateCampaignStats = async (id, amount) => {
   const docRef = doc(db, "campaigns", id);
 
-  const newCollected = (campaign.collected || 0) + amount;
-  const newContributors = (campaign.contributors || 0) + 1;
-
   await updateDoc(docRef, {
-    collected: newCollected,
-    contributors: newContributors,
+    collected: increment(amount),
+    raised: increment(amount),      // keep admin panel field in sync
+    contributors: increment(1),
   });
 
-  return {
-    collected: newCollected,
-    contributors: newContributors,
-  };
+  // Return the latest snapshot so the caller can update local state
+  const updated = await getDoc(docRef);
+  return { ...updated.data(), id };
 };

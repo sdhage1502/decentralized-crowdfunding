@@ -9,7 +9,7 @@ const HomePage = () => {
   const { isLoading } = useWeb3();
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7]">
+    <div className="min-h-screen">
       <main>
         <HeroSection />
         {isLoading && (

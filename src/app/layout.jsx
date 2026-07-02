@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Header from './components/Header';
+import ClickSpark from './components/ClickSpark';
 import { Web3Provider } from '../context/Web3Context';
 import { Toaster } from 'react-hot-toast';
 import '../styles/globals.css';
@@ -17,7 +18,7 @@ export default function RootLayout({ children }) {
         <link rel="icon" type="image/png" href="/crowdfunding.svg" />
         <link rel="apple-touch-icon" href="/crowdfunding.svg" />
       </head>
-      <body className="bg-white text-black">
+      <body>
         <Script
           id="clarity-script"
           strategy="afterInteractive"
@@ -30,32 +31,40 @@ export default function RootLayout({ children }) {
           }}
         />
         <Web3Provider>
-          <Header />
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              style: {
-                fontSize: '16px',
-                fontWeight: '500',
-                textAlign: 'center',
-              },
-              success: {
-                duration: 4000,
-                theme: {
-                  primary: 'green',
-                  secondary: 'white',
+          <ClickSpark
+            sparkColor="#3247C5"
+            sparkSize={10}
+            sparkRadius={20}
+            sparkCount={8}
+            duration={400}
+          >
+            <Header />
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: {
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  textAlign: 'center',
                 },
-              },
-              error: {
-                duration: 5000,
-                theme: {
-                  primary: 'red',
-                  secondary: 'white',
+                success: {
+                  duration: 4000,
+                  theme: {
+                    primary: 'green',
+                    secondary: 'white',
+                  },
                 },
-              },
-            }}
-          />
-          {children}
+                error: {
+                  duration: 5000,
+                  theme: {
+                    primary: 'red',
+                    secondary: 'white',
+                  },
+                },
+              }}
+            />
+            {children}
+          </ClickSpark>
         </Web3Provider>
       </body>
     </html>

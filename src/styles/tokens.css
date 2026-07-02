@@ -1,0 +1,38 @@
+/* Design tokens for the modern-minimal Hallmark theme */
+:root {
+  --color-paper: oklch(99% 0.003 260);
+  --color-paper-2: oklch(96.5% 0.005 260);
+  --color-paper-3: oklch(93% 0.007 260);
+
+  --color-paper-glass: oklch(99% 0.003 260 / 80%);
+  --color-paper-2-glass: oklch(96.5% 0.005 260 / 70%);
+  --color-paper-3-glass: oklch(93% 0.007 260 / 75%);
+  --color-grid: oklch(50% 0 0 / 0.05);
+  
+  --color-ink: oklch(16% 0.008 260);
+  --color-ink-2: oklch(45% 0.006 260);
+  
+  --color-rule: oklch(90% 0.004 260);
+  --color-rule-strong: oklch(80% 0.006 260);
+  
+  --color-accent: #3247C5;
+  --color-accent-hover: oklch(38% 0.22 260);
+  --color-accent-bg: oklch(94% 0.02 260);
+  
+  --color-success: #28a745;
+  --color-success-bg: oklch(96% 0.015 145);
+  --color-success-border: oklch(85% 0.03 145);
+  
+  --color-error: #dc3545;
+  --color-error-bg: oklch(96% 0.015 20);
+  --color-error-border: oklch(85% 0.03 20);
+  
+  --color-warning: #e0a800;
+  --color-warning-bg: oklch(97% 0.015 85);
+  --color-warning-border: oklch(88% 0.03 85);
+  
+  --color-focus: oklch(55% 0.22 260);
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

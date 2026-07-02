@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import ethicon from '../../../public/ethereum-logo.svg';
-import { Target, TrendingUp, Users, Heart, CheckCircle, Zap, Globe, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { db } from '../../firebase/config'; // Adjust path if needed
+import { Target, TrendingUp, Users, CheckCircle, Zap, Globe, Loader2, Search, ChevronLeft, ChevronRight, Clock, AlertTriangle } from "lucide-react";
+import { db } from '../../firebase/config';
 import PromotionalCard from '../components/promotionalCard';
 
 const Dashboard = () => {
@@ -15,8 +16,8 @@ const Dashboard = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState("urgency"); // "urgency", "date", "progress"
   const campaignsPerPage = 6;
-
 
   const router = useRouter();
 
@@ -24,11 +25,20 @@ const Dashboard = () => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
-        const querySnapshot = await getDocs(collection(db, 'campaigns'));
+        
+        // Only fetch approved and active campaigns
+        const q = query(
+          collection(db, 'campaigns'),
+          where('status', '==', 'approved'),
+          where('isActive', '==', true)
+        );
+        
+        const querySnapshot = await getDocs(q);
         const campaignList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        
         setCampaigns(campaignList);
       } catch (error) {
         console.error('Error fetching campaigns:', error);
@@ -40,112 +50,202 @@ const Dashboard = () => {
     fetchCampaigns();
   }, []);
 
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    return (
-      campaign.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      campaign.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  const getUrgencyPriority = (urgency) => {
+    const priorities = { critical: 4, high: 3, medium: 2, low: 1 };
+    return priorities[urgency] || 1;
+  };
 
-  const totalPages = Math.ceil(filteredCampaigns.length / campaignsPerPage);
+  const formatDate = (dateCreated, createdAt) => {
+    let date;
+    if (dateCreated) {
+      date = new Date(dateCreated);
+    } else if (createdAt && createdAt.seconds) {
+      date = new Date(createdAt.seconds * 1000);
+    } else {
+      return "Unknown date";
+    }
+    
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  // Filter and sort campaigns
+  const filteredAndSortedCampaigns = campaigns
+    .filter((campaign) => {
+      return (
+        campaign.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        campaign.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        campaign.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "urgency":
+          const urgencyDiff = getUrgencyPriority(b.urgency) - getUrgencyPriority(a.urgency);
+          if (urgencyDiff !== 0) return urgencyDiff;
+          
+          const dateA = a.dateCreated ? new Date(a.dateCreated) : (a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0));
+          const dateB = b.dateCreated ? new Date(b.dateCreated) : (b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0));
+          return dateB - dateA;
+          
+        case "date":
+          const dateASort = a.dateCreated ? new Date(a.dateCreated) : (a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0));
+          const dateBSort = b.dateCreated ? new Date(b.dateCreated) : (b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0));
+          return dateBSort - dateASort;
+          
+        case "progress":
+          const progressA = ((a.collected || 0) / a.amount) * 100;
+          const progressB = ((b.collected || 0) / b.amount) * 100;
+          return progressB - progressA;
+          
+        default:
+          return 0;
+      }
+    });
+
+  const totalPages = Math.ceil(filteredAndSortedCampaigns.length / campaignsPerPage);
   const indexOfLastCampaign = currentPage * campaignsPerPage;
   const indexOfFirstCampaign = indexOfLastCampaign - campaignsPerPage;
-  const currentCampaigns = filteredCampaigns.slice(indexOfFirstCampaign, indexOfLastCampaign);
+  const currentCampaigns = filteredAndSortedCampaigns.slice(indexOfFirstCampaign, indexOfLastCampaign);
 
   const stats = {
     totalCampaigns: campaigns.length,
     totalRaised: campaigns.reduce((sum, campaign) => sum + (campaign.collected || 0), 0),
     activeCampaigns: campaigns.filter(c => ((c.collected || 0) / c.amount) * 100 < 100).length,
-    completedCampaigns: campaigns.filter(c => ((c.collected || 0) / c.amount) * 100 >= 100).length
+    completedCampaigns: campaigns.filter(c => ((c.collected || 0) / c.amount) * 100 >= 100).length,
+    criticalCampaigns: campaigns.filter(c => c.urgency === 'critical').length,
+    highUrgencyCampaigns: campaigns.filter(c => c.urgency === 'high').length
+  };
+
+  const getUrgencyBadge = (urgency) => {
+    const urgencyConfig = {
+      critical: { bg: "bg-error-bg border-error-border", text: "text-error", icon: AlertTriangle, label: "Critical" },
+      high: { bg: "bg-warning-bg border-warning-border", text: "text-warning", icon: AlertTriangle, label: "High" },
+      medium: { bg: "bg-paper-3 border-rule-strong", text: "text-ink-2", icon: Clock, label: "Medium" },
+      low: { bg: "bg-success-bg border-success-border", text: "text-success", icon: Clock, label: "Low" }
+    };
+
+    const config = urgencyConfig[urgency] || urgencyConfig.medium;
+    const IconComponent = config.icon;
+    
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${config.bg} ${config.text}`}>
+        <IconComponent size={10} />
+        {config.label}
+      </span>
+    );
   };
 
   return (
-    <section className="dark:bg-secondaryBlack inset-0 w-full min-h-screen bg-white bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px] py-16 px-6">
-      <div className="mx-auto max-w-7xl">
-        {/* Simple Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2.5 rounded-lg shadow-md">
-              <Globe size={32} className="text-white" />
+    <section className="bg-transparent min-h-screen py-16 px-6 sm:px-8">
+      <div className="mx-auto max-w-7xl space-y-12">
+        
+        {/* Header with Search and Sort */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-rule">
+          <div className="flex items-center gap-4">
+            <div className="bg-accent-bg border border-rule-strong p-3 rounded-xl">
+              <Globe size={28} className="text-accent" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-blue-700">
-                Explore Campaigns
+              <h1 className="text-3xl font-extrabold text-ink tracking-tight">
+                Discover Campaigns
               </h1>
-              <div className="h-0.5 w-20 bg-blue-500 mt-1"></div>
+              <p className="text-xs text-ink-2 font-medium mt-1">
+                Verified crowdfunding pools deployed on-chain
+              </p>
             </div>
           </div>
 
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search campaigns..."
-              value={searchQuery}
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full lg:w-auto">
+            {/* Sort Dropdown */}
+            <select
+              value={sortBy}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset to first page on new search
+                setSortBy(e.target.value);
+                setCurrentPage(1);
               }}
+              aria-label="Sort campaigns"
+              className="px-3.5 py-2 border border-rule-strong rounded-lg text-xs font-semibold text-ink bg-paper-2-glass backdrop-blur hover:bg-paper-3 focus:outline-none transition-colors"
+            >
+              <option value="urgency">Sort by Urgency</option>
+              <option value="date">Sort by Date</option>
+              <option value="progress">Sort by Progress</option>
+            </select>
 
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-              className={`w-72 px-4 py-3 border-2 rounded-xl focus:outline-none transition-all duration-300 ${isSearchFocused
-                ? 'border-blue-500 shadow-md bg-blue-50/50'
-                : 'border-blue-200 hover:border-gray-300'
-                }`}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-              <Search size={20} className={`transition-colors duration-300 ${isSearchFocused ? 'text-blue-500' : 'text-blue-400'}`} />
+            {/* Search Input */}
+            <div className="relative flex-1 sm:flex-none">
+              <input
+                type="text"
+                placeholder="Search campaigns..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                aria-label="Search campaigns"
+                className={`w-full sm:w-64 pl-3.5 pr-9 py-2 border rounded-lg text-xs transition-all duration-200 focus:outline-none ${
+                  isSearchFocused
+                    ? 'border-accent bg-paper-glass backdrop-blur-md ring-1 ring-accent'
+                    : 'border-rule-strong bg-paper-2-glass backdrop-blur hover:bg-paper-3'
+                } text-ink placeholder-ink-2/60`}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <Search size={14} className={isSearchFocused ? 'text-accent' : 'text-ink-2'} aria-hidden="true" />
+              </div>
             </div>
           </div>
         </div>
 
-        <p className="text-lg text-gray-700 md:text-xl mb-12 text-center max-w-3xl mx-auto flex items-center justify-center gap-2">
-          Discover innovative projects and meaningful causes seeking support on our decentralized platform.
-        </p>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           {[
-            { icon: Globe, label: "Total Campaigns", value: stats.totalCampaigns, color: "blue", bg: "from-blue-500 to-blue-600" },
-            { icon: ethicon, label: "Total Raised", value: `${stats.totalRaised.toFixed(2)} ETH`, isImage: true },
-            { icon: Zap, label: "Active Campaigns", value: stats.activeCampaigns, color: "yellow", bg: "from-yellow-500 to-yellow-600" },
-            { icon: CheckCircle, label: "Completed", value: stats.completedCampaigns, color: "purple", bg: "from-purple-500 to-purple-600" }
+            { icon: Globe, label: "Total Pools", value: stats.totalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+            { icon: ethicon, label: "Total Raised", value: `${stats.totalRaised.toFixed(3)} ETH`, isImage: true, bg: "bg-paper-2-glass backdrop-blur" },
+            { icon: Zap, label: "Active", value: stats.activeCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+            { icon: CheckCircle, label: "Completed", value: stats.completedCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+            { icon: AlertTriangle, label: "Critical", value: stats.criticalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+            { icon: Clock, label: "High Urgency", value: stats.highUrgencyCampaigns, bg: "bg-paper-2-glass backdrop-blur" }
           ].map((stat, index) => (
-            <div key={index} className="group relative">
-              <div className="relative bg-white p-6 rounded-xl shadow-lg border-2 border-gray-100 transform group-hover:scale-105 transition-all duration-300 hover:shadow-xl">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-r ${stat.bg} text-white shadow-lg`}>
-                    {stat.isImage ? (
-                      <Image src={stat.icon} alt="Stat Icon" width={24} height={24} />
-                    ) : (
-                      <stat.icon size={24} />)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-                  </div>
-                </div>
+            <div key={index} className={`${stat.bg} p-4 rounded-xl border border-rule flex flex-col items-center justify-center text-center gap-1 shadow-sm`}>
+              <div className="p-2 rounded-lg bg-paper-3-glass backdrop-blur-sm flex items-center justify-center">
+                {stat.isImage ? (
+                  <Image src={stat.icon} alt="" width={14} height={14} aria-hidden="true" />
+                ) : (
+                  <stat.icon size={14} className="text-accent" aria-hidden="true" />
+                )}
+              </div>
+              <div className="mt-1">
+                <span className="text-[10px] font-bold text-ink-2 block uppercase tracking-wider">{stat.label}</span>
+                <span className="text-md font-extrabold text-ink mt-0.5 block">{stat.value}</span>
               </div>
             </div>
           ))}
         </div>
 
         {loading ? (
-          <div className="text-center py-16">
-            <Loader2 className="animate-spin mx-auto mb-4 text-blue-600" size={32} />
-            <p className="text-xl text-gray-500 flex items-center justify-center gap-2">
-              Loading campaigns...
-            </p>
+          <div className="text-center py-20">
+            <Loader2 className="animate-spin mx-auto mb-3 text-accent" size={32} />
+            <p className="text-sm font-semibold text-ink-2">Retrieving approved campaigns...</p>
           </div>
-        ) : filteredCampaigns.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-xl text-gray-500 flex items-center justify-center gap-2">
-              <Search size={20} />
-              No campaigns found.
+        ) : filteredAndSortedCampaigns.length === 0 ? (
+          <div className="text-center py-20 border border-dashed border-rule-strong rounded-2xl bg-paper-2-glass backdrop-blur">
+            <Search size={32} className="mx-auto mb-3 text-ink-2 opacity-40" />
+            <p className="text-sm font-bold text-ink">
+              {campaigns.length === 0 ? "No active campaigns currently" : "No results match your criteria"}
+            </p>
+            <p className="text-xs text-ink-2 mt-1 max-w-sm mx-auto">
+              {campaigns.length === 0 
+                ? "Submissions are being audited by admins and will list here once authorized."
+                : "Try adjusting your search keywords or sorting criteria."}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentCampaigns.map((campaign) => {
               const progressPercentage = Math.min(
                 ((campaign.collected || 0) / campaign.amount) * 100,
@@ -156,115 +256,151 @@ const Dashboard = () => {
               return (
                 <div
                   key={campaign.id}
-                  className="bg-white border-3 border-[#3247C5] rounded-lg overflow-hidden shadow-lg transform transition-transform hover:scale-[1.02] hover:shadow-xl cursor-pointer"
-                  onClick={() => router.push(`/campaigns/${campaign.id}`)}
+                  className="bg-paper-2-glass backdrop-blur border border-rule rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-rule-strong transition-all duration-300 flex flex-col h-full"
                 >
-                  <div className="relative h-48 w-full overflow-hidden border-b-3 border-[#3247C5]">
+                  {/* Photo container */}
+                  <div className="relative h-44 w-full overflow-hidden bg-paper-3 border-b border-rule">
                     <img
                       src={campaign.image}
-                      alt={campaign.title}
-                      className="w-full h-full object-cover"
+                      alt=""
+                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
-                    <div className="absolute top-3 right-3 bg-[#FFC107] text-black text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                      <Image src="/ethereum-logo.svg" alt="ETH" width={16} height={16} />
+                    
+                    {/* Goal badge */}
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1 font-mono">
                       {campaign.amount} ETH
                     </div>
-                    <div className="absolute top-3 left-3 bg-white text-black text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+
+                    <div className="absolute top-3 left-3 bg-white/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
                       {isGoalReached ? (
-                        <CheckCircle size={14} className="text-green-600" />
+                        <CheckCircle size={10} className="text-success" aria-hidden="true" />
                       ) : (
-                        <Zap size={14} className="text-yellow-600" />
+                        <Zap size={10} className="text-yellow-600" aria-hidden="true" />
                       )}
-                      {isGoalReached ? "Goal Reached" : "Active"}
+                      {isGoalReached ? "Funded" : "Active"}
+                    </div>
+                    
+                    {/* Urgency Badge */}
+                    <div className="absolute bottom-3 left-3">
+                      {getUrgencyBadge(campaign.urgency)}
                     </div>
                   </div>
 
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                      {campaign.title}
-                    </h2>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
-                      {campaign.description}
-                    </p>
-
-                    <div className="mt-4 flex justify-between items-center">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className={`h-2.5 rounded-full ${isGoalReached ? 'bg-green-500' : 'bg-[#28A745]'}`}
-                          style={{ width: `${progressPercentage}%` }}
-                        ></div>
+                  {/* Card Content */}
+                  <div className="p-5 flex flex-col flex-1 justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 text-[10px] text-ink-2 font-semibold uppercase tracking-wider">
+                        <span className="flex items-center gap-1">
+                          <Clock size={12} aria-hidden="true" />
+                          {formatDate(campaign.dateCreated, campaign.createdAt)}
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Target size={12} aria-hidden="true" />
+                          {campaign.category}
+                        </span>
                       </div>
+
+                      <h2 className="text-md font-bold text-ink leading-snug line-clamp-2 hover:text-accent transition-colors">
+                        <Link href={`/campaigns/${campaign.id}`}>
+                          {campaign.title}
+                        </Link>
+                      </h2>
+
+                      <p className="text-xs text-ink-2 leading-relaxed line-clamp-3">
+                        {campaign.description}
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Image src="/ethereum-logo.svg" alt="ETH" width={16} height={16} />
-                        {campaign.collected || 0} ETH raised
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users size={14} />
-                        {campaign.contributors || 0} backers
-                      </span>
-                    </div>
+                    <div className="space-y-3 pt-2">
+                      {/* Progress bar */}
+                      <div className="space-y-1">
+                        <div className="w-full bg-paper-3-glass backdrop-blur-sm rounded-full h-1.5 overflow-hidden border border-rule">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              isGoalReached ? 'bg-success' : 'bg-accent'
+                            }`}
+                            style={{ width: `${progressPercentage}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] font-semibold text-ink-2">
+                          <span className="flex items-center gap-0.5">
+                            <Image src="/ethereum-logo.svg" alt="Eth" width={10} height={10} className="inline mr-0.5" />
+                            {campaign.collected || 0} ETH
+                          </span>
+                          <span className="flex items-center gap-0.5 font-mono">
+                            <Users size={10} className="inline" aria-hidden="true" />
+                            {campaign.contributors || 0} backers
+                          </span>
+                        </div>
+                      </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/campaigns/${campaign.id}`);
-                      }}
-                      className="mt-6 w-full h-[45px] bg-[#3247C5] text-white rounded-lg text-lg font-bold shadow-md hover:bg-[#2a3aa1] transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Globe size={18} />
-                      View Campaign
-                    </button>
+                      <Link
+                        href={`/campaigns/${campaign.id}`}
+                        className="w-full py-2 bg-accent-bg hover:bg-accent hover:text-white border border-rule-strong text-accent rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                      >
+                        <Globe size={14} aria-hidden="true" />
+                        View details
+                      </Link>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
-
         )}
 
-       
         {/* Pagination */}
-        <div className="flex justify-center mt-16 gap-2 flex-wrap items-center">
-          {/* Previous Button */}
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="w-10 h-10 rounded-full border bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:shadow-md transition-all duration-300 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          {/* Page Numbers */}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        {filteredAndSortedCampaigns.length > campaignsPerPage && (
+          <div className="flex justify-center items-center gap-2 pt-6">
             <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`w-10 h-10 rounded-full border transition-all duration-300 font-semibold flex items-center justify-center shadow-sm
-        ${currentPage === page
-                  ? 'bg-gradient-to-tr from-[#3247C5] to-[#4158D0] text-white border-transparent scale-105 shadow-md'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:shadow-md hover:scale-105'}`}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              aria-label="Previous page"
+              className="w-8 h-8 rounded-lg border bg-paper-2-glass backdrop-blur border-rule text-ink hover:bg-paper-3-glass hover:shadow-sm transition-all flex items-center justify-center disabled:opacity-40"
             >
-              {page}
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </button>
-          ))}
 
-          {/* Next Button */}
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="w-10 h-10 rounded-full border bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:shadow-md transition-all duration-300 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? "page" : undefined}
+                className={`w-8 h-8 rounded-lg border font-semibold text-xs transition-all flex items-center justify-center ${
+                  currentPage === page
+                    ? 'bg-accent text-white border-transparent'
+                    : 'bg-paper-2-glass backdrop-blur text-ink border-rule hover:bg-paper-3-glass'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              aria-label="Next page"
+              className="w-8 h-8 rounded-lg border bg-paper-2-glass backdrop-blur border-rule text-ink hover:bg-paper-3-glass hover:shadow-sm transition-all flex items-center justify-center disabled:opacity-40"
+            >
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
 
+      <div className="max-w-7xl mx-auto mt-12">
+        <PromotionalCard />
+      </div>
 
- <PromotionalCard/>
       <style jsx>{`
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
         .line-clamp-3 {
           display: -webkit-box;
           -webkit-line-clamp: 3;
@@ -272,7 +408,6 @@ const Dashboard = () => {
           overflow: hidden;
         }
       `}</style>
-
     </section>
   );
 };

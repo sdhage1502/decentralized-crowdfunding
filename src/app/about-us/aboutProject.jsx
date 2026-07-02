@@ -18,146 +18,135 @@ import {
 const etheriumLogo = '/ethereum-logo.svg';
 
 const projectStats = [
-  { icon: Shield, label: 'Security Features', value: 'Multi-layer', color: 'red' },
-  { icon: Wallet, label: 'Crypto Integration', value: 'MetaMask & UPI', color: 'green' },
-  { icon: TrendingUp, label: 'Performance Gain', value: '40%', color: 'purple' },
-  { icon: Monitor, label: 'Components Built', value: '15+', color: 'blue' },
+  { icon: Shield, label: 'Security Features', value: 'Multi-layer' },
+  { icon: Wallet, label: 'Crypto Integration', value: 'MetaMask & UPI' },
+  { icon: TrendingUp, label: 'Performance Gain', value: '40%' },
+  { icon: Monitor, label: 'Components Built', value: '15+' },
 ];
 
 const projectFeatures = [
-  { icon: Shield, title: 'Decentralized & Trustless', description: 'Ethereum smart contracts ensure transparency', color: 'blue' },
-  { icon: Wallet, title: 'Crypto Funding (ETH)', description: 'Secure contributions using MetaMask', color: 'green' },
-  { icon: TrendingUp, title: 'Real-time Tracking', description: 'Live updates and contribution monitoring', color: 'purple' },
-  { icon: Eye, title: 'Campaign Discovery', description: 'Search and explore detailed campaign stats', color: 'yellow' },
-  { icon: CheckCircle, title: 'Admin Approval', description: 'Only verified campaigns go live', color: 'red' },
-  { icon: Share2, title: 'Social Sharing', description: 'Shareable links for social media', color: 'indigo' },
+  { icon: Shield, title: 'Decentralized & Trustless', description: 'Ethereum smart contracts ensure transparency' },
+  { icon: Wallet, title: 'Crypto Funding (ETH)', description: 'Secure contributions using MetaMask' },
+  { icon: TrendingUp, title: 'Real-time Tracking', description: 'Live updates and contribution monitoring' },
+  { icon: Eye, title: 'Campaign Discovery', description: 'Search and explore detailed campaign stats' },
+  { icon: CheckCircle, title: 'Admin Approval', description: 'Only verified campaigns go live' },
+  { icon: Share2, title: 'Social Sharing', description: 'Shareable links for social media' },
 ];
 
 const projectWorkflow = [
-  { step: '1', title: 'Create Campaign', description: 'Users enter campaign details.', details: 'Data saved on-chain and off-chain.', icon: FileText, color: 'blue' },
-  { step: '2', title: 'Admin Review', description: 'Approved before going live.', details: 'Ensures legitimacy.', icon: CheckCircle, color: 'green' },
-  { step: '3', title: 'Public Discovery', description: 'Search, filter, view stats.', details: 'Engage with live campaigns.', icon: Search, color: 'purple' },
-  { step: '4', title: 'Contribute', description: 'Donate via ETH or UPI.', details: 'On-chain or QR code modal.', icon: etheriumLogo, color: 'orange' },
-  { step: '5', title: 'Real-time Updates', description: 'Live sync with Firebase.', details: 'Instant visual updates.', icon: TrendingUp, color: 'pink' },
+  { step: '1', title: 'Create Campaign', description: 'Users enter campaign details.', details: 'Data saved on-chain and off-chain.', icon: FileText },
+  { step: '2', title: 'Admin Review', description: 'Approved before going live.', details: 'Ensures legitimacy.', icon: CheckCircle },
+  { step: '3', title: 'Public Discovery', description: 'Search, filter, view stats.', details: 'Engage with live campaigns.', icon: Search },
+  { step: '4', title: 'Contribute', description: 'Donate via ETH or UPI.', details: 'On-chain or QR code modal.', icon: etheriumLogo },
+  { step: '5', title: 'Real-time Updates', description: 'Live sync with Firebase.', details: 'Instant visual updates.', icon: TrendingUp },
 ];
 
 const techStack = [
-  { category: 'Smart Contracts', technologies: ['Solidity', 'Hardhat'], icon: Shield, color: 'blue' },
-  { category: 'Frontend', technologies: ['Next.js', 'React', 'Tailwind CSS'], icon: Monitor, color: 'green' },
-  { category: 'Wallet Integration', technologies: ['MetaMask', 'Ethers.js'], icon: Wallet, color: 'purple' },
-  { category: 'Backend/DB', technologies: ['Firestore', 'REST APIs'], icon: Database, color: 'orange' },
-  { category: 'Deployment', technologies: ['Vercel', 'GitHub Actions'], icon: Rocket, color: 'pink' },
+  { category: 'Smart Contracts', technologies: ['Solidity', 'Hardhat'], icon: Shield },
+  { category: 'Frontend', technologies: ['Next.js', 'React', 'Tailwind CSS'], icon: Monitor },
+  { category: 'Wallet Integration', technologies: ['MetaMask', 'Ethers.js'], icon: Wallet },
+  { category: 'Backend/DB', technologies: ['Firestore', 'REST APIs'], icon: Database },
+  { category: 'Deployment', technologies: ['Vercel', 'GitHub Actions'], icon: Rocket },
 ];
 
-const getColorClasses = (color) => ({
-  blue: 'bg-blue-100 text-blue-600 border-blue-200',
-  green: 'bg-green-100 text-green-600 border-green-200',
-  purple: 'bg-purple-100 text-purple-600 border-purple-200',
-  yellow: 'bg-yellow-100 text-yellow-600 border-yellow-200',
-  red: 'bg-red-100 text-red-600 border-red-200',
-  orange: 'bg-orange-100 text-orange-600 border-orange-200',
-  pink: 'bg-pink-100 text-pink-600 border-pink-200',
-  indigo: 'bg-indigo-100 text-indigo-600 border-indigo-200',
-}[color] || 'bg-blue-100 text-blue-600 border-blue-200');
-
-const getBgColorClasses = (color) => ({
-  blue: 'bg-blue-50 border-blue-200',
-  green: 'bg-green-50 border-green-200',
-  purple: 'bg-purple-50 border-purple-200',
-  yellow: 'bg-yellow-50 border-yellow-200',
-  red: 'bg-red-50 border-red-200',
-  orange: 'bg-orange-50 border-orange-200',
-  pink: 'bg-pink-50 border-pink-200',
-  indigo: 'bg-indigo-50 border-indigo-200',
-}[color] || 'bg-blue-50 border-blue-200');
-
 const AboutProject = () => (
-  <section className="max-w-7xl mx-auto px-6 py-20">
-    <div className="text-center mb-16">
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-100 mb-4">
-        <Sparkles className="w-4 h-4 text-blue-600" />
-        <span className="text-sm font-medium text-blue-700">Blockchain Crowdfunding DApp</span>
+  <section className="max-w-7xl mx-auto px-6 py-16 sm:py-20 lg:py-24 bg-transparent">
+    <div className="text-center mb-16 max-w-3xl mx-auto space-y-4">
+      <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-bg border border-rule-strong rounded-full">
+        <Sparkles className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
+        <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Blockchain Crowdfunding DApp</span>
       </div>
-      <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-        Crowdfunding with
-        <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Decentralized Technology
-        </span>
+      
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink leading-tight tracking-tight">
+        Crowdfunding with <span className="text-accent block md:inline">Decentralized Technology</span>
       </h1>
-      <p className="mt-6 text-lg text-gray-600 max-w-3xl mx-auto">
+      
+      <p className="text-base sm:text-lg text-ink-2 leading-relaxed">
         Build, launch, and manage fundraising campaigns directly on Ethereum. Secure. Transparent. Empowering.
       </p>
     </div>
 
-    {/* Stats */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+    {/* Stats Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
       {projectStats.map((stat, idx) => (
-        <div key={idx} className="bg-white p-4 rounded-xl shadow border text-center">
-          <div className={`inline-flex p-2 rounded-lg ${getColorClasses(stat.color)} mb-2`}>
-            <stat.icon size={20} />
+        <div key={idx} className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule flex flex-col items-start hover:border-rule-strong transition-all duration-300">
+          <div className="p-2.5 bg-paper-3 border border-rule rounded-lg text-accent mb-4">
+            <stat.icon size={20} aria-hidden="true" />
           </div>
-          <div className="text-lg font-bold text-gray-800">{stat.value}</div>
-          <div className="text-sm text-gray-600">{stat.label}</div>
+          <div className="text-2xl font-extrabold text-ink tracking-tight">{stat.value}</div>
+          <div className="text-xs font-semibold text-ink-2 uppercase tracking-wider mt-1">{stat.label}</div>
         </div>
       ))}
     </div>
 
     {/* Features */}
-    <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-      {projectFeatures.map((feature, idx) => (
-        <div key={idx} className="bg-white p-6 rounded-xl shadow border text-center">
-          <div className={`inline-flex p-3 rounded-xl ${getColorClasses(feature.color)} mb-4`}>
-            <feature.icon size={24} />
+    <div className="mb-20">
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-ink text-center tracking-tight mb-12">Key Features</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {projectFeatures.map((feature, idx) => (
+          <div key={idx} className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule hover:border-rule-strong transition-all duration-300">
+            <div className="p-2.5 bg-paper-3 border border-rule rounded-lg text-accent mb-4 inline-flex">
+              <feature.icon size={22} aria-hidden="true" />
+            </div>
+            <h3 className="text-lg font-bold text-ink mb-2">{feature.title}</h3>
+            <p className="text-sm text-ink-2 leading-relaxed">{feature.description}</p>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-          <p className="text-gray-600">{feature.description}</p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
 
     {/* Workflow */}
-    <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-    <div className="grid lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-1 gap-6 mb-16 text-center">
-      {projectWorkflow.map((step, idx) => (
-        <div key={idx} className="flex flex-col items-center gap-4">
-          <div className={`w-24 h-24 flex flex-col justify-center items-center rounded-full shadow border-2 ${getBgColorClasses(step.color)}`}>
-            {typeof step.icon === 'string' ? (
-              <img src={step.icon} className="w-5 h-5 mb-1" alt={step.title} />
-            ) : (
-              <step.icon size={20} />
-            )}
-            <span className="text-xs font-bold text-gray-700">{step.step}</span>
+    <div className="mb-20">
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-ink text-center tracking-tight mb-12">How It Works</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        {projectWorkflow.map((step, idx) => (
+          <div key={idx} className="relative bg-paper-2-glass backdrop-blur border border-rule p-5 rounded-xl flex flex-col justify-between hover:border-rule-strong transition-all duration-300">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-8 h-8 rounded-full bg-accent-bg border border-rule-strong flex items-center justify-center text-accent text-xs font-bold">
+                  {step.step}
+                </div>
+                <div className="text-ink-2">
+                  {typeof step.icon === 'string' ? (
+                    <img src={step.icon} className="w-5 h-5 opacity-70" alt="" aria-hidden="true" />
+                  ) : (
+                    <step.icon size={20} aria-hidden="true" />
+                  )}
+                </div>
+              </div>
+              <h3 className="text-sm font-bold text-ink mb-1">{step.title}</h3>
+              <p className="text-xs text-ink-2 leading-relaxed mb-4">{step.description}</p>
+            </div>
+            <div className="pt-3 border-t border-rule text-[10px] text-ink-2 font-semibold uppercase tracking-wider">
+              {step.details}
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-xl shadow text-sm">
-            <h4 className="font-bold text-gray-900 mb-1">{step.title}</h4>
-            <p className="text-gray-600">{step.description}</p>
-            <p className="text-gray-500 text-xs mt-1">{step.details}</p>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
 
     {/* Tech Stack */}
-    <h2 className="text-3xl font-bold text-center mb-12">Technology Stack</h2>
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {techStack.map((tech, idx) => (
-        <div key={idx} className="bg-white rounded-xl shadow p-6 border">
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2 rounded-lg ${getColorClasses(tech.color)}`}>
-              <tech.icon size={20} />
+    <div>
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-ink text-center tracking-tight mb-12">Technology Stack</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {techStack.map((tech, idx) => (
+          <div key={idx} className="bg-paper-2-glass backdrop-blur border border-rule rounded-xl p-6 hover:border-rule-strong transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-paper-3 border border-rule rounded-lg text-accent">
+                <tech.icon size={18} aria-hidden="true" />
+              </div>
+              <h3 className="text-base font-bold text-ink">{tech.category}</h3>
             </div>
-            <h3 className="text-lg font-bold text-gray-900">{tech.category}</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {tech.technologies.map((t, i) => (
+                <span key={i} className="px-2.5 py-1 text-xs font-semibold rounded-md bg-paper-3 border border-rule text-ink-2">
+                  {t}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {tech.technologies.map((t, i) => (
-              <span key={i} className={`px-3 py-1 text-sm rounded-full border ${getBgColorClasses(tech.color)}`}>
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   </section>
 );
