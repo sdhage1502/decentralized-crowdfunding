@@ -41,9 +41,9 @@ const HeroSection = () => {
 
   return (
     <section className="relative w-full bg-transparent border-b border-rule overflow-hidden min-h-[85vh] flex items-center py-16 sm:py-20 lg:py-24">
-      {/* Decorative Blur Blooms */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-accent-bg rounded-full filter blur-3xl opacity-40 pointer-events-none animate-pulse"></div>
-      <div className="absolute bottom-10 right-10 w-72 h-72 bg-success-bg rounded-full filter blur-3xl opacity-30 pointer-events-none animate-pulse" style={{ animationDelay: '2s' }}></div>
+      {/* Decorative ambient blur blooms to complement the global background */}
+      <div className="absolute top-10 left-10 w-72 h-72 bg-accent-bg rounded-full filter blur-3xl opacity-30 pointer-events-none animate-pulse"></div>
+      <div className="absolute bottom-10 right-10 w-72 h-72 bg-success-bg rounded-full filter blur-3xl opacity-20 pointer-events-none animate-pulse" style={{ animationDelay: '2s' }}></div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 w-full">
         {/* Asymmetric Grid */}

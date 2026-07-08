@@ -13,7 +13,20 @@ import {
   Monitor,
   Database,
   Rocket,
+  Cpu,
 } from 'lucide-react';
+
+import {
+  SiSolidity,
+  SiNextdotjs,
+  SiReact,
+  SiTailwindcss,
+  SiEthereum,
+  SiEthers,
+  SiFirebase,
+  SiVercel,
+  SiGithubactions,
+} from 'react-icons/si';
 
 const etheriumLogo = '/ethereum-logo.svg';
 
@@ -42,26 +55,62 @@ const projectWorkflow = [
 ];
 
 const techStack = [
-  { category: 'Smart Contracts', technologies: ['Solidity', 'Hardhat'], icon: Shield },
-  { category: 'Frontend', technologies: ['Next.js', 'React', 'Tailwind CSS'], icon: Monitor },
-  { category: 'Wallet Integration', technologies: ['MetaMask', 'Ethers.js'], icon: Wallet },
-  { category: 'Backend/DB', technologies: ['Firestore', 'REST APIs'], icon: Database },
-  { category: 'Deployment', technologies: ['Vercel', 'GitHub Actions'], icon: Rocket },
+  { 
+    category: 'Smart Contracts', 
+    icon: Shield, 
+    technologies: [
+      { name: 'Solidity', icon: SiSolidity },
+      { name: 'Hardhat', icon: Cpu }
+    ] 
+  },
+  { 
+    category: 'Frontend', 
+    icon: Monitor, 
+    technologies: [
+      { name: 'Next.js', icon: SiNextdotjs },
+      { name: 'React', icon: SiReact },
+      { name: 'Tailwind CSS', icon: SiTailwindcss }
+    ] 
+  },
+  { 
+    category: 'Wallet Integration', 
+    icon: Wallet, 
+    technologies: [
+      { name: 'MetaMask', icon: SiEthereum },
+      { name: 'Ethers.js', icon: SiEthers }
+    ] 
+  },
+  { 
+    category: 'Backend/DB', 
+    icon: Database, 
+    technologies: [
+      { name: 'Firestore', icon: SiFirebase },
+      { name: 'REST APIs', icon: Cpu }
+    ] 
+  },
+  { 
+    category: 'Deployment', 
+    icon: Rocket, 
+    technologies: [
+      { name: 'Vercel', icon: SiVercel },
+      { name: 'GitHub Actions', icon: SiGithubactions }
+    ] 
+  },
 ];
 
 const AboutProject = () => (
   <section className="max-w-7xl mx-auto px-6 py-16 sm:py-20 lg:py-24 bg-transparent">
     <div className="text-center mb-16 max-w-3xl mx-auto space-y-4">
-      <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-bg border border-rule-strong rounded-full">
+      <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/8 border border-border rounded-full">
         <Sparkles className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
         <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Blockchain Crowdfunding DApp</span>
       </div>
       
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink leading-tight tracking-tight">
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-strong leading-tight tracking-tight">
         Crowdfunding with <span className="text-accent block md:inline">Decentralized Technology</span>
       </h1>
       
-      <p className="text-base sm:text-lg text-ink-2 leading-relaxed">
+      <p className="text-base sm:text-lg text-text-body leading-relaxed">
         Build, launch, and manage fundraising campaigns directly on Ethereum. Secure. Transparent. Empowering.
       </p>
     </div>
@@ -69,27 +118,27 @@ const AboutProject = () => (
     {/* Stats Grid */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
       {projectStats.map((stat, idx) => (
-        <div key={idx} className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule flex flex-col items-start hover:border-rule-strong transition-all duration-300">
-          <div className="p-2.5 bg-paper-3 border border-rule rounded-lg text-accent mb-4">
+        <div key={idx} className="bg-surface/70 backdrop-blur p-6 rounded-xl border border-border flex flex-col items-start hover:border-border transition-all duration-300">
+          <div className="p-2.5 bg-surface-alt border border-border rounded-lg text-accent mb-4">
             <stat.icon size={20} aria-hidden="true" />
           </div>
-          <div className="text-2xl font-extrabold text-ink tracking-tight">{stat.value}</div>
-          <div className="text-xs font-semibold text-ink-2 uppercase tracking-wider mt-1">{stat.label}</div>
+          <div className="text-2xl font-extrabold text-text-strong tracking-tight">{stat.value}</div>
+          <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mt-1">{stat.label}</div>
         </div>
       ))}
     </div>
 
     {/* Features */}
     <div className="mb-20">
-      <h2 className="text-2xl sm:text-3xl font-extrabold text-ink text-center tracking-tight mb-12">Key Features</h2>
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-text-strong text-center tracking-tight mb-12">Key Features</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projectFeatures.map((feature, idx) => (
-          <div key={idx} className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule hover:border-rule-strong transition-all duration-300">
-            <div className="p-2.5 bg-paper-3 border border-rule rounded-lg text-accent mb-4 inline-flex">
+          <div key={idx} className="bg-surface/70 backdrop-blur p-6 rounded-xl border border-border hover:border-border transition-all duration-300">
+            <div className="p-2.5 bg-surface-alt border border-border rounded-lg text-accent mb-4 inline-flex">
               <feature.icon size={22} aria-hidden="true" />
             </div>
-            <h3 className="text-lg font-bold text-ink mb-2">{feature.title}</h3>
-            <p className="text-sm text-ink-2 leading-relaxed">{feature.description}</p>
+            <h3 className="text-lg font-bold text-text-strong mb-2">{feature.title}</h3>
+            <p className="text-sm text-text-body leading-relaxed">{feature.description}</p>
           </div>
         ))}
       </div>
@@ -97,27 +146,27 @@ const AboutProject = () => (
 
     {/* Workflow */}
     <div className="mb-20">
-      <h2 className="text-2xl sm:text-3xl font-extrabold text-ink text-center tracking-tight mb-12">How It Works</h2>
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-text-strong text-center tracking-tight mb-12">How It Works</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         {projectWorkflow.map((step, idx) => (
-          <div key={idx} className="relative bg-paper-2-glass backdrop-blur border border-rule p-5 rounded-xl flex flex-col justify-between hover:border-rule-strong transition-all duration-300">
+          <div key={idx} className="relative bg-surface/70 backdrop-blur border border-border p-5 rounded-xl flex flex-col justify-between hover:border-border transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-8 h-8 rounded-full bg-accent-bg border border-rule-strong flex items-center justify-center text-accent text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-accent/8 border border-border flex items-center justify-center text-accent text-xs font-bold">
                   {step.step}
                 </div>
-                <div className="text-ink-2">
+                <div className="text-text-body">
                   {typeof step.icon === 'string' ? (
-                    <img src={step.icon} className="w-5 h-5 opacity-70" alt="" aria-hidden="true" />
+                    <img src={step.icon} className="w-5 h-5 opacity-70 filter dark:invert" alt="" aria-hidden="true" />
                   ) : (
                     <step.icon size={20} aria-hidden="true" />
                   )}
                 </div>
               </div>
-              <h3 className="text-sm font-bold text-ink mb-1">{step.title}</h3>
-              <p className="text-xs text-ink-2 leading-relaxed mb-4">{step.description}</p>
+              <h3 className="text-sm font-bold text-text-strong mb-1">{step.title}</h3>
+              <p className="text-xs text-text-body leading-relaxed mb-4">{step.description}</p>
             </div>
-            <div className="pt-3 border-t border-rule text-[10px] text-ink-2 font-semibold uppercase tracking-wider">
+            <div className="pt-3 border-t border-border text-[10px] text-text-muted font-semibold uppercase tracking-wider">
               {step.details}
             </div>
           </div>
@@ -127,20 +176,21 @@ const AboutProject = () => (
 
     {/* Tech Stack */}
     <div>
-      <h2 className="text-2xl sm:text-3xl font-extrabold text-ink text-center tracking-tight mb-12">Technology Stack</h2>
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-text-strong text-center tracking-tight mb-12">Technology Stack</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {techStack.map((tech, idx) => (
-          <div key={idx} className="bg-paper-2-glass backdrop-blur border border-rule rounded-xl p-6 hover:border-rule-strong transition-all duration-300">
+          <div key={idx} className="bg-surface/70 backdrop-blur border border-border rounded-xl p-6 hover:border-border transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-paper-3 border border-rule rounded-lg text-accent">
+              <div className="p-2 bg-surface-alt border border-border rounded-lg text-accent">
                 <tech.icon size={18} aria-hidden="true" />
               </div>
-              <h3 className="text-base font-bold text-ink">{tech.category}</h3>
+              <h3 className="text-base font-bold text-text-strong">{tech.category}</h3>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {tech.technologies.map((t, i) => (
-                <span key={i} className="px-2.5 py-1 text-xs font-semibold rounded-md bg-paper-3 border border-rule text-ink-2">
-                  {t}
+                <span key={i} className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-surface-alt border border-border text-text-body flex items-center gap-2 hover:border-text-muted/30 transition-colors">
+                  {t.icon && <t.icon className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />}
+                  {t.name}
                 </span>
               ))}
             </div>

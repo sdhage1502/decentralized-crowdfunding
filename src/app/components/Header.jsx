@@ -27,7 +27,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--color-paper)]/80 backdrop-blur-md border-b border-[var(--color-rule)] transition-all duration-300">
+    <header className="sticky top-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 py-3.5">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -52,8 +52,8 @@ const Header = () => {
                   href="/"
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-medium transition-all duration-200 ${
                     isActiveLink("/")
-                      ? "text-[var(--color-accent)] bg-[var(--color-accent-bg)]"
-                      : "text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)]"
+                      ? "text-primary bg-primary/8"
+                      : "text-text-body hover:text-primary hover:bg-surface-alt"
                   }`}
                 >
                   <Home size={16} />
@@ -66,8 +66,8 @@ const Header = () => {
                   onClick={handleAboutClick}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-medium transition-all duration-200 ${
                     isActiveLink("/about-us")
-                      ? "text-[var(--color-accent)] bg-[var(--color-accent-bg)]"
-                      : "text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)]"
+                      ? "text-primary bg-primary/8"
+                      : "text-text-body hover:text-primary hover:bg-surface-alt"
                   }`}
                 >
                   <Info size={16} />
@@ -79,7 +79,7 @@ const Header = () => {
                   href="https://shreyash-portfoilo-website.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)] font-medium transition-all duration-200"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-text-body hover:text-primary hover:bg-surface-alt font-medium transition-all duration-200"
                 >
                   <Code size={16} />
                   Portfolio
@@ -91,7 +91,7 @@ const Header = () => {
                   href="https://github.com/sdhage1502"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)] font-medium transition-all duration-200"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-text-body hover:text-primary hover:bg-surface-alt font-medium transition-all duration-200"
                 >
                   <GitFork size={16} />
                   GitHub
@@ -101,7 +101,7 @@ const Header = () => {
               {/* Wallet Connect */}
               <li>
                 {account ? (
-                  <div className="flex items-center gap-2 bg-[var(--color-accent-bg)] px-4 py-2 rounded-lg border border-[var(--color-rule-strong)] text-[var(--color-accent)] font-semibold shadow-sm text-sm">
+                  <div className="flex items-center gap-2 bg-primary/8 px-4 py-2 rounded-lg border border-border text-primary font-semibold shadow-sm text-sm">
                     <Wallet size={16} />
                     <span className="font-mono">{`${account.slice(0, 6)}...${account.slice(-4)}`}</span>
                   </div>
@@ -109,7 +109,7 @@ const Header = () => {
                   <button
                     onClick={connectWallet}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-5 py-2 bg-[var(--color-accent)] text-white font-semibold rounded-lg shadow-sm hover:bg-[var(--color-accent-hover)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="flex items-center gap-2 px-5 py-2 bg-primary text-text-inverse font-semibold rounded-lg shadow-sm hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
                     <Wallet size={16} />
                     {isLoading ? "Connecting..." : "Connect Wallet"}
@@ -124,7 +124,7 @@ const Header = () => {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMobileMenuOpen}
-            className="md:hidden p-2 rounded-lg text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-all duration-200"
+            className="md:hidden p-2 rounded-lg text-text-strong hover:bg-surface-alt transition-all duration-200"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -132,7 +132,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-[var(--color-rule)]">
+          <div className="md:hidden mt-4 pt-4 border-t border-border">
             <nav>
               <ul className="flex flex-col gap-2">
                 <li>
@@ -141,8 +141,8 @@ const Header = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                       isActiveLink("/")
-                        ? "text-[var(--color-accent)] bg-[var(--color-accent-bg)]"
-                        : "text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)]"
+                        ? "text-primary bg-primary/8"
+                        : "text-text-body hover:text-primary hover:bg-surface-alt"
                     }`}
                   >
                     <Home size={18} />
@@ -158,8 +158,8 @@ const Header = () => {
                     }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                       isActiveLink("/about-us")
-                        ? "text-[var(--color-accent)] bg-[var(--color-accent-bg)]"
-                        : "text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)]"
+                        ? "text-primary bg-primary/8"
+                        : "text-text-body hover:text-primary hover:bg-surface-alt"
                     }`}
                   >
                     <Info size={18} />
@@ -172,7 +172,7 @@ const Header = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)] font-medium transition-all duration-200"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-text-body hover:text-primary hover:bg-surface-alt font-medium transition-all duration-200"
                   >
                     <Code size={18} />
                     Portfolio
@@ -184,7 +184,7 @@ const Header = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-2)] font-medium transition-all duration-200"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-text-body hover:text-primary hover:bg-surface-alt font-medium transition-all duration-200"
                   >
                     <GitFork size={18} />
                     GitHub
@@ -192,9 +192,9 @@ const Header = () => {
                 </li>
 
                 {/* Mobile Wallet Connect */}
-                <li className="pt-2 border-t border-[var(--color-rule)]">
+                <li className="pt-2 border-t border-border">
                   {account ? (
-                    <div className="flex items-center justify-center gap-3 bg-[var(--color-accent-bg)] px-4 py-3 rounded-lg border border-[var(--color-rule-strong)] text-[var(--color-accent)] font-semibold text-sm">
+                    <div className="flex items-center justify-center gap-3 bg-primary/8 px-4 py-3 rounded-lg border border-border text-primary font-semibold text-sm">
                       <Wallet size={18} />
                       <span className="font-mono">{`${account.slice(0, 6)}...${account.slice(-4)}`}</span>
                     </div>
@@ -205,7 +205,7 @@ const Header = () => {
                         setIsMobileMenuOpen(false);
                       }}
                       disabled={isLoading}
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-[var(--color-accent)] text-white font-semibold rounded-lg shadow-sm hover:bg-[var(--color-accent-hover)] transition-all duration-200 disabled:opacity-50 text-sm"
+                      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-primary text-text-inverse font-semibold rounded-lg shadow-sm hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 text-sm"
                     >
                       <Wallet size={18} />
                       {isLoading ? "Connecting..." : "Connect Wallet"}
@@ -222,4 +222,3 @@ const Header = () => {
 };
 
 export default Header;
-

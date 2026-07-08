@@ -1,38 +1,84 @@
-/* Design tokens for the modern-minimal Hallmark theme */
+/* Design tokens for the verified Design System Specification */
 :root {
-  --color-paper: oklch(99% 0.003 260);
-  --color-paper-2: oklch(96.5% 0.005 260);
-  --color-paper-3: oklch(93% 0.007 260);
+  /* Raw RGB coordinates (enables Tailwind's opacity modifier, e.g. bg-primary/20) */
+  --raw-bg: 248 250 252; /* #F8FAFC */
+  --raw-surface: 255 255 255; /* #FFFFFF */
+  --raw-surface-alt: 241 245 249; /* #F1F5F9 */
+  --raw-border: 226 232 240; /* #E2E8F0 */
 
-  --color-paper-glass: oklch(99% 0.003 260 / 80%);
-  --color-paper-2-glass: oklch(96.5% 0.005 260 / 70%);
-  --color-paper-3-glass: oklch(93% 0.007 260 / 75%);
-  --color-grid: oklch(50% 0 0 / 0.05);
+  --raw-text-strong: 15 23 42; /* #0F172A */
+  --raw-text-body: 51 65 85; /* #334155 */
+  --raw-text-muted: 100 116 139; /* #64748B */
+  --raw-text-inverse: 248 250 252; /* #F8FAFC */
+
+  --raw-primary: 30 64 175; /* #1E40AF */
+  --raw-primary-hover: 29 78 216; /* #1D4ED8 */
+  --raw-accent: 13 148 136; /* #0D9488 */
+  --raw-accent-hover: 15 118 110; /* #0F766E */
+
+  --raw-success: 22 163 74; /* #16A34A */
+  --raw-warning: 217 119 6; /* #D97706 */
+  --raw-danger: 220 38 38; /* #DC2626 */
+
+  /* Standard CSS wrappers for direct stylesheet usage and backward-compatibility */
+  --color-paper: rgb(var(--raw-bg));
+  --color-paper-2: rgb(var(--raw-surface));
+  --color-paper-3: rgb(var(--raw-surface-alt));
   
-  --color-ink: oklch(16% 0.008 260);
-  --color-ink-2: oklch(45% 0.006 260);
+  --color-paper-glass: rgb(var(--raw-bg) / 80%);
+  --color-paper-2-glass: rgb(var(--raw-surface) / 70%);
+  --color-paper-3-glass: rgb(var(--raw-surface-alt) / 75%);
+  --color-grid: rgba(100, 116, 139, 0.04);
   
-  --color-rule: oklch(90% 0.004 260);
-  --color-rule-strong: oklch(80% 0.006 260);
+  --color-ink: rgb(var(--raw-text-strong));
+  --color-ink-2: rgb(var(--raw-text-body));
   
-  --color-accent: #3247C5;
-  --color-accent-hover: oklch(38% 0.22 260);
-  --color-accent-bg: oklch(94% 0.02 260);
+  --color-rule: rgb(var(--raw-border));
+  --color-rule-strong: rgb(var(--raw-border));
   
-  --color-success: #28a745;
-  --color-success-bg: oklch(96% 0.015 145);
-  --color-success-border: oklch(85% 0.03 145);
+  --color-accent: rgb(var(--raw-primary)); /* Maps legacy accent uses to primary brand blue */
+  --color-accent-hover: rgb(var(--raw-primary-hover));
+  --color-accent-bg: rgb(var(--raw-primary) / 8%);
   
-  --color-error: #dc3545;
-  --color-error-bg: oklch(96% 0.015 20);
-  --color-error-border: oklch(85% 0.03 20);
+  --color-success: rgb(var(--raw-success));
+  --color-success-bg: rgb(var(--raw-success) / 8%);
+  --color-success-border: rgb(var(--raw-success) / 30%);
   
-  --color-warning: #e0a800;
-  --color-warning-bg: oklch(97% 0.015 85);
-  --color-warning-border: oklch(88% 0.03 85);
+  --color-error: rgb(var(--raw-danger));
+  --color-error-bg: rgb(var(--raw-danger) / 8%);
+  --color-error-border: rgb(var(--raw-danger) / 30%);
   
-  --color-focus: oklch(55% 0.22 260);
+  --color-warning: rgb(var(--raw-warning));
+  --color-warning-bg: rgb(var(--raw-warning) / 8%);
+  --color-warning-border: rgb(var(--raw-warning) / 30%);
+  
+  --color-focus: rgb(var(--raw-primary));
   
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.dark {
+  /* Raw RGB coordinates overrides for Dark Mode */
+  --raw-bg: 9 13 22; /* #090D16 */
+  --raw-surface: 17 24 39; /* #111827 */
+  --raw-surface-alt: 31 41 55; /* #1F2937 */
+  --raw-border: 55 65 81; /* #374151 */
+
+  --raw-text-strong: 248 250 252; /* #F8FAFC */
+  --raw-text-body: 229 231 235; /* #E5E7EB */
+  --raw-text-muted: 156 163 175; /* #9CA3AF */
+  --raw-text-inverse: 9 13 22; /* #090D16 */
+
+  --raw-primary: 59 130 246; /* #3B82F6 */
+  --raw-primary-hover: 96 165 250; /* #60A5FA */
+  --raw-accent: 20 184 166; /* #14B8A6 */
+  --raw-accent-hover: 45 212 191; /* #2DD4BF */
+
+  --raw-success: 34 197 94; /* #22C55E */
+  --raw-warning: 245 158 11; /* #F59E0B */
+  --raw-danger: 239 68 68; /* #EF4444 */
+
+  /* Redeclare grid color for dark mode context */
+  --color-grid: rgba(248, 250, 252, 0.02);
 }

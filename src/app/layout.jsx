@@ -2,12 +2,17 @@
 import React from 'react';
 import Header from './components/Header';
 import ClickSpark from './components/ClickSpark';
+import TechBackground from './components/TechBackground';
 import { Web3Provider } from '../context/Web3Context';
 import { Toaster } from 'react-hot-toast';
+import { usePathname } from 'next/navigation';
 import '../styles/globals.css';
 import Script from 'next/script';
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isHomepage = pathname === '/';
+
   return (
     <html lang="en">
       <head>
@@ -38,6 +43,8 @@ export default function RootLayout({ children }) {
             sparkCount={8}
             duration={400}
           >
+            {/* Global Tech Background */}
+            <TechBackground animated={isHomepage} showCircuitry={true} />
             <Header />
             <Toaster
               position="top-center"
