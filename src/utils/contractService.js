@@ -47,9 +47,10 @@ export const contributeToContract = async (campaignId, amountEth) => {
   }
 
   const contract = await getSignedContract();
+  const campaignIdBytes32 = ethers.encodeBytes32String(campaignId);
 
   // Verify campaign is registered on-chain before attempting contribution
-  const isRegistered = await contract.isCampaignRegistered(campaignId);
+  const isRegistered = await contract.isCampaignRegistered(campaignIdBytes32);
   if (!isRegistered) {
     throw new Error(
       "This campaign is not yet registered on-chain. Please try again shortly after admin approval."
@@ -58,7 +59,7 @@ export const contributeToContract = async (campaignId, amountEth) => {
 
   const amountWei = ethers.parseEther(amountEth.toString());
 
-  const tx = await contract.contribute(campaignId, { value: amountWei });
+  const tx = await contract.contribute(campaignIdBytes32, { value: amountWei });
   const receipt = await tx.wait();
   return receipt;
 };
@@ -72,11 +73,13 @@ export const contributeToContract = async (campaignId, amountEth) => {
 export const getCampaignOnChainStats = async (campaignId) => {
   try {
     const contract = await getReadOnlyContract();
-    const isRegistered = await contract.isCampaignRegistered(campaignId);
+    const campaignIdBytes32 = ethers.encodeBytes32String(campaignId);
+    
+    const isRegistered = await contract.isCampaignRegistered(campaignIdBytes32);
     if (!isRegistered) return null;
 
     const [collectedWei, contributorCount, goalWei, isActive, creator] =
-      await contract.getCampaign(campaignId);
+      await contract.getCampaign(campaignIdBytes32);
 
     return {
       collectedEth:     parseFloat(ethers.formatEther(collectedWei)),
@@ -105,12 +108,12 @@ export const registerCampaignOnChain = async (campaignId, creatorAddress, goalEt
   }
 
   const contract = await getSignedContract();
+  const campaignIdBytes32 = ethers.encodeBytes32String(campaignId);
 
-  // goalEth must be a whole number for the contract (it multiplies by 1 ether internally)
-  // We round up to nearest whole ETH to avoid precision issues
-  const goalEthRounded = Math.ceil(Number(goalEth));
+  // goalEth can now be fractional. We convert to Wei precisely.
+  const goalWei = ethers.parseEther(goalEth.toString());
 
-  const tx = await contract.registerCampaign(campaignId, creatorAddress, goalEthRounded);
+  const tx = await contract.registerCampaign(campaignIdBytes32, creatorAddress, goalWei);
   const receipt = await tx.wait();
   return receipt;
 };
@@ -125,7 +128,9 @@ export const withdrawCampaignFunds = async (campaignId) => {
   if (!campaignId) throw new Error("Campaign ID is required.");
 
   const contract = await getSignedContract();
-  const tx = await contract.withdrawFunds(campaignId);
+  const campaignIdBytes32 = ethers.encodeBytes32String(campaignId);
+  
+  const tx = await contract.withdrawFunds(campaignIdBytes32);
   const receipt = await tx.wait();
   return receipt;
 };

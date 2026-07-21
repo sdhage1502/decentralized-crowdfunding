@@ -14,9 +14,9 @@ const AboutDeveloper = () => {
       </div>
 
       {/* Center Browser Mockup Container */}
-      <div className="max-w-5xl mx-auto flex flex-col h-[600px] w-full rounded-2xl border border-border bg-surface-alt overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="max-w-5xl mx-auto flex flex-col h-[min(72dvh,600px)] min-h-[360px] sm:min-h-[460px] w-full rounded-2xl border border-border bg-surface-alt overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
         {/* Browser Header Bar */}
-        <div className="flex items-center justify-between px-4 py-3 bg-surface border-b border-border select-none">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-surface border-b border-border select-none">
           {/* macOS Window Controls */}
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] inline-block"></span>
@@ -25,7 +25,7 @@ const AboutDeveloper = () => {
           </div>
           
           {/* Address Bar */}
-          <div className="flex items-center justify-center bg-surface-alt px-3 py-1 rounded-lg border border-border text-[11px] text-text-muted font-medium w-full max-w-md mx-4 select-all break-all overflow-hidden truncate">
+          <div className="flex min-w-0 flex-1 items-center justify-center bg-surface-alt px-3 py-1 rounded-lg border border-border text-[11px] text-text-muted font-medium max-w-md mx-2 sm:mx-4 select-all truncate">
             portfolio.shreyashdhage.in
           </div>
 
@@ -34,7 +34,7 @@ const AboutDeveloper = () => {
             href="https://portfolio.shreyashdhage.in" 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="text-text-muted hover:text-primary transition-colors shrink-0"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:text-primary hover:bg-surface-alt transition-colors shrink-0"
             aria-label="Open portfolio in new tab"
           >
             <ExternalLink size={14} />

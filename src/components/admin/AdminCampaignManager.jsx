@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { auth, db } from '../../firebase/config';
 import {
   collection,
@@ -149,12 +150,12 @@ const AdminCampaignManager = () => {
           campaign.amount
         );
         toast.dismiss('onchain');
-        toast.success('Campaign registered on-chain ✓');
+        toast.success('Campaign registered on-chain Γ£ô');
       } catch (chainErr) {
         toast.dismiss('onchain');
         console.warn('On-chain registration skipped:', chainErr.message);
         toast('On-chain registration skipped (local network may not be running)', {
-          icon: '⚠️',
+          icon: 'ΓÜá∩╕Å',
         });
       }
 
@@ -215,7 +216,7 @@ const AdminCampaignManager = () => {
 
   const handleDelete = async (id, title) => {
     const confirmed = window.confirm(
-      `⚠️ Permanently delete campaign "${title}"? This cannot be undone.`
+      `ΓÜá∩╕Å Permanently delete campaign "${title}"? This cannot be undone.`
     );
     if (!confirmed) return;
     try {
@@ -375,13 +376,16 @@ const AdminCampaignManager = () => {
         <div className="md:col-span-4 flex flex-col justify-between gap-4">
           {campaign.image && (
             <div className="rounded-lg overflow-hidden border border-rule-strong bg-paper-glass backdrop-blur-md">
-              <img
+              <Image
                 src={campaign.image}
                 alt={campaign.title}
+                width={400}
+                height={200}
                 className="w-full h-32 object-cover"
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
+                unoptimized
               />
             </div>
           )}

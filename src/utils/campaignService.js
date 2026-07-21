@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 
 /**
@@ -13,6 +13,33 @@ export const fetchCampaignById = async (id) => {
   }
 
   return { ...snapshot.data(), id };
+};
+
+/**
+ * Creates a new campaign submission.
+ */
+export const createCampaign = async (campaignData) => {
+  try {
+    const payload = {
+      ...campaignData,
+      amount: parseFloat(campaignData.amount),
+      status: "pending",
+      createdAt: serverTimestamp(),
+      dateCreated: new Date().toISOString(),
+      raised: 0,
+      collected: 0,
+      donors: 0,
+      contributors: 0,
+      isActive: false,
+      submissionTimestamp: Date.now()
+    };
+
+    const docRef = await addDoc(collection(db, "campaigns"), payload);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating campaign document:", error);
+    throw new Error("Failed to create campaign. Please try again later.");
+  }
 };
 
 /**

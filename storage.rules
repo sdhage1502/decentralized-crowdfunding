@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /campaigns/{imageId} {
+      // Anyone can read images
+      allow read: if true;
+      
+      // Anyone can upload (since campaign creation is public)
+      // Limit size to 5MB and check image content type
+      allow create: if request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+                    
+      // Only authenticated users can delete or update
+      allow update, delete: if request.auth != null;
+    }
+  }
+}

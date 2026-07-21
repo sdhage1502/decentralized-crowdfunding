@@ -8,7 +8,8 @@ import Link from 'next/link';
 import ethicon from '../../../public/ethereum-logo.svg';
 import { Target, TrendingUp, Users, CheckCircle, Zap, Globe, Loader2, Search, ChevronLeft, ChevronRight, Clock, AlertTriangle } from "lucide-react";
 import { db } from '../../firebase/config';
-import PromotionalCard from '../components/promotionalCard';
+import PromotionalCard from '../../components/ui/PromotionalCard';
+import AnimatedLoader from '../../components/ui/AnimatedLoader';
 
 const Dashboard = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -140,21 +141,21 @@ const Dashboard = () => {
   };
 
   return (
-    <section className="bg-transparent min-h-screen py-16 px-6 sm:px-8">
-      <div className="mx-auto max-w-7xl space-y-12">
+    <section className="bg-transparent min-h-[100dvh] py-10 sm:py-12 px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-8">
         
         {/* Header with Search and Sort */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-rule">
-          <div className="flex items-center gap-4">
-            <div className="bg-accent-bg border border-rule-strong p-3 rounded-xl">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-5 border-b border-rule">
+          <div className="flex min-w-0 items-start sm:items-center gap-3 sm:gap-4">
+            <div className="bg-accent-bg border border-rule-strong p-3 rounded-xl shrink-0">
               <Globe size={28} className="text-accent" />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-ink tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight break-words">
                 Discover Campaigns
               </h1>
               <p className="text-xs text-ink-2 font-medium mt-1">
-                Verified crowdfunding pools deployed on-chain
+                Browse approved campaigns - every one verified on Ethereum
               </p>
             </div>
           </div>
@@ -168,7 +169,7 @@ const Dashboard = () => {
                 setCurrentPage(1);
               }}
               aria-label="Sort campaigns"
-              className="px-3.5 py-2 border border-rule-strong rounded-lg text-xs font-semibold text-ink bg-paper-2-glass backdrop-blur hover:bg-paper-3 focus:outline-none transition-colors"
+              className="min-h-11 w-full sm:w-auto px-3.5 py-2 border border-rule-strong rounded-lg text-xs font-semibold text-ink bg-paper-2-glass backdrop-blur hover:bg-paper-3 focus:outline-none transition-colors"
             >
               <option value="urgency">Sort by Urgency</option>
               <option value="date">Sort by Date</option>
@@ -188,7 +189,7 @@ const Dashboard = () => {
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 aria-label="Search campaigns"
-                className={`w-full sm:w-64 pl-3.5 pr-9 py-2 border rounded-lg text-xs transition-all duration-200 focus:outline-none ${
+                className={`w-full sm:w-64 min-h-11 pl-3.5 pr-9 py-2 border rounded-lg text-xs transition-all duration-200 focus:outline-none ${
                   isSearchFocused
                     ? 'border-accent bg-paper-glass backdrop-blur-md ring-1 ring-accent'
                     : 'border-rule-strong bg-paper-2-glass backdrop-blur hover:bg-paper-3'
@@ -200,9 +201,8 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
         {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
           {[
             { icon: Globe, label: "Total Pools", value: stats.totalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
             { icon: ethicon, label: "Total Raised", value: `${stats.totalRaised.toFixed(3)} ETH`, isImage: true, bg: "bg-paper-2-glass backdrop-blur" },
@@ -211,7 +211,11 @@ const Dashboard = () => {
             { icon: AlertTriangle, label: "Critical", value: stats.criticalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
             { icon: Clock, label: "High Urgency", value: stats.highUrgencyCampaigns, bg: "bg-paper-2-glass backdrop-blur" }
           ].map((stat, index) => (
-            <div key={index} className={`${stat.bg} p-4 rounded-xl border border-rule flex flex-col items-center justify-center text-center gap-1 shadow-sm`}>
+            <div
+              key={index}
+              className={`${stat.bg} min-w-0 p-3.5 rounded-xl border border-rule flex flex-col items-center justify-center text-center gap-1 shadow-sm hover-lift animate-fade-slide-in`}
+              style={{ animationDelay: `${index * 40}ms` }}
+            >
               <div className="p-2 rounded-lg bg-paper-3-glass backdrop-blur-sm flex items-center justify-center">
                 {stat.isImage ? (
                   <Image src={stat.icon} alt="" width={14} height={14} aria-hidden="true" />
@@ -220,33 +224,32 @@ const Dashboard = () => {
                 )}
               </div>
               <div className="mt-1">
-                <span className="text-[10px] font-bold text-ink-2 block uppercase tracking-wider">{stat.label}</span>
-                <span className="text-md font-extrabold text-ink mt-0.5 block">{stat.value}</span>
+                <span className="text-[11px] font-bold text-ink-2 block uppercase tracking-wider leading-tight break-words">{stat.label}</span>
+                <span className="text-md font-extrabold text-ink mt-0.5 block leading-tight break-words">{stat.value}</span>
               </div>
             </div>
           ))}
         </div>
 
         {loading ? (
-          <div className="text-center py-20">
-            <Loader2 className="animate-spin mx-auto mb-3 text-accent" size={32} />
-            <p className="text-sm font-semibold text-ink-2">Retrieving approved campaigns...</p>
+          <div className="py-20 flex justify-center">
+            <AnimatedLoader message="Fetching campaigns..." />
           </div>
         ) : filteredAndSortedCampaigns.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-rule-strong rounded-2xl bg-paper-2-glass backdrop-blur">
+          <div className="text-center py-20 border border-dashed border-rule-strong rounded-2xl bg-paper-2-glass backdrop-blur animate-scale-in">
             <Search size={32} className="mx-auto mb-3 text-ink-2 opacity-40" />
             <p className="text-sm font-bold text-ink">
-              {campaigns.length === 0 ? "No active campaigns currently" : "No results match your criteria"}
+              {campaigns.length === 0 ? "No campaigns live yet" : "No results match your criteria"}
             </p>
             <p className="text-xs text-ink-2 mt-1 max-w-sm mx-auto">
               {campaigns.length === 0 
-                ? "Submissions are being audited by admins and will list here once authorized."
+                ? "No campaigns live yet - check back soon or be the first to launch one."
                 : "Try adjusting your search keywords or sorting criteria."}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentCampaigns.map((campaign) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {currentCampaigns.map((campaign, index) => {
               const progressPercentage = Math.min(
                 ((campaign.collected || 0) / campaign.amount) * 100,
                 100
@@ -256,52 +259,55 @@ const Dashboard = () => {
               return (
                 <div
                   key={campaign.id}
-                  className="bg-paper-2-glass backdrop-blur border border-rule rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-rule-strong transition-all duration-300 flex flex-col h-full"
+                  className="bg-paper-2-glass backdrop-blur border border-rule rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-rule-strong hover-lift transition-all duration-300 flex flex-col h-full animate-fade-slide-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Photo container */}
-                  <div className="relative h-44 w-full overflow-hidden bg-paper-3 border-b border-rule">
-                    <img
+                  <div className="relative h-40 w-full overflow-hidden bg-paper-3 border-b border-rule">
+                    <Image
                       src={campaign.image}
-                      alt=""
+                      alt={campaign.title}
+                      width={400}
+                      height={200}
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      unoptimized
                     />
                     
                     {/* Goal badge */}
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1 font-mono">
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1 font-mono max-w-[calc(100%-1.5rem)] truncate">
                       {campaign.amount} ETH
                     </div>
 
-                    <div className="absolute top-3 left-3 bg-white/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                    <div className="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] bg-white/90 text-black text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
                       {isGoalReached ? (
                         <CheckCircle size={10} className="text-success" aria-hidden="true" />
                       ) : (
-                        <Zap size={10} className="text-yellow-600" aria-hidden="true" />
+                        <Zap size={10} className="text-warning" aria-hidden="true" />
                       )}
                       {isGoalReached ? "Funded" : "Active"}
                     </div>
                     
                     {/* Urgency Badge */}
-                    <div className="absolute bottom-3 left-3">
+                    <div className="absolute bottom-3 left-3 animate-scale-in" style={{ animationDelay: `${index * 50 + 100}ms` }}>
                       {getUrgencyBadge(campaign.urgency)}
                     </div>
                   </div>
 
                   {/* Card Content */}
-                  <div className="p-5 flex flex-col flex-1 justify-between space-y-4">
+                  <div className="p-4 flex flex-col flex-1 justify-between space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-3 text-[10px] text-ink-2 font-semibold uppercase tracking-wider">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-2 font-semibold uppercase tracking-wider">
                         <span className="flex items-center gap-1">
                           <Clock size={12} aria-hidden="true" />
                           {formatDate(campaign.dateCreated, campaign.createdAt)}
                         </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:inline text-ink-2/60">/</span>\r\n                        <span className="flex min-w-0 items-center gap-1">
                           <Target size={12} aria-hidden="true" />
                           {campaign.category}
                         </span>
                       </div>
 
-                      <h2 className="text-md font-bold text-ink leading-snug line-clamp-2 hover:text-accent transition-colors">
+                      <h2 className="text-md font-bold text-ink leading-snug line-clamp-2 break-words hover:text-accent transition-colors">
                         <Link href={`/campaigns/${campaign.id}`}>
                           {campaign.title}
                         </Link>
@@ -317,13 +323,13 @@ const Dashboard = () => {
                       <div className="space-y-1">
                         <div className="w-full bg-paper-3-glass backdrop-blur-sm rounded-full h-1.5 overflow-hidden border border-rule">
                           <div
-                            className={`h-full rounded-full transition-all duration-300 ${
+                            className={`h-full rounded-full transition-[width] duration-500 [transition-timing-function:var(--ease-out)] ${
                               isGoalReached ? 'bg-success' : 'bg-accent'
                             }`}
                             style={{ width: `${progressPercentage}%` }}
                           />
                         </div>
-                        <div className="flex justify-between items-center text-[10px] font-semibold text-ink-2">
+                        <div className="flex flex-wrap justify-between items-center gap-2 text-[11px] font-semibold text-ink-2">
                           <span className="flex items-center gap-0.5">
                             <Image src="/ethereum-logo.svg" alt="Eth" width={10} height={10} className="inline mr-0.5" />
                             {campaign.collected || 0} ETH
@@ -337,10 +343,10 @@ const Dashboard = () => {
 
                       <Link
                         href={`/campaigns/${campaign.id}`}
-                        className="w-full py-2 bg-accent-bg hover:bg-accent hover:text-white border border-rule-strong text-accent rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                        className="w-full py-2 bg-accent-bg hover:bg-accent hover:text-white border border-rule-strong text-accent rounded-lg text-xs font-bold transition-all btn-active-feedback shadow-sm flex items-center justify-center gap-1.5"
                       >
-                        <Globe size={14} aria-hidden="true" />
-                        View details
+                        <Users size={14} aria-hidden="true" />
+                        Back this campaign
                       </Link>
                     </div>
                   </div>
@@ -352,12 +358,12 @@ const Dashboard = () => {
 
         {/* Pagination */}
         {filteredAndSortedCampaigns.length > campaignsPerPage && (
-          <div className="flex justify-center items-center gap-2 pt-6">
+          <div className="flex flex-wrap justify-center items-center gap-2 pt-6">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               aria-label="Previous page"
-              className="w-8 h-8 rounded-lg border bg-paper-2-glass backdrop-blur border-rule text-ink hover:bg-paper-3-glass hover:shadow-sm transition-all flex items-center justify-center disabled:opacity-40"
+              className="w-8 h-8 rounded-lg border bg-paper-2-glass backdrop-blur border-rule text-ink hover:bg-paper-3-glass hover:shadow-sm btn-active-feedback transition-all flex items-center justify-center disabled:opacity-40"
             >
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </button>
@@ -368,7 +374,7 @@ const Dashboard = () => {
                 onClick={() => setCurrentPage(page)}
                 aria-label={`Page ${page}`}
                 aria-current={currentPage === page ? "page" : undefined}
-                className={`w-8 h-8 rounded-lg border font-semibold text-xs transition-all flex items-center justify-center ${
+                className={`w-8 h-8 rounded-lg border font-semibold text-xs transition-all btn-active-feedback flex items-center justify-center ${
                   currentPage === page
                     ? 'bg-accent text-white border-transparent'
                     : 'bg-paper-2-glass backdrop-blur text-ink border-rule hover:bg-paper-3-glass'
@@ -382,7 +388,7 @@ const Dashboard = () => {
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
               aria-label="Next page"
-              className="w-8 h-8 rounded-lg border bg-paper-2-glass backdrop-blur border-rule text-ink hover:bg-paper-3-glass hover:shadow-sm transition-all flex items-center justify-center disabled:opacity-40"
+              className="w-8 h-8 rounded-lg border bg-paper-2-glass backdrop-blur border-rule text-ink hover:bg-paper-3-glass hover:shadow-sm btn-active-feedback transition-all flex items-center justify-center disabled:opacity-40"
             >
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </button>
@@ -390,7 +396,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      <div className="max-w-7xl mx-auto mt-12">
+      <div className="max-w-7xl mx-auto mt-8">
         <PromotionalCard />
       </div>
 

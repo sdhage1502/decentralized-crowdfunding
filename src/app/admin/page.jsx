@@ -6,7 +6,7 @@ import {
   onAuthStateChanged,
   signOut,
 } from 'firebase/auth';
-import AdminCampaignManager from '../admin/AdminCampaignManager';
+import AdminCampaignManager from '../../components/admin/AdminCampaignManager';
 import toast from 'react-hot-toast';
 import { Shield, Lock, Loader2, LogOut } from 'lucide-react';
 
@@ -58,10 +58,15 @@ const AdminPage = () => {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
-    setUser(null);
-    setShowLoginModal(true);
-    toast.success('Logged out successfully');
+    try {
+      await signOut(auth);
+      setUser(null);
+      setShowLoginModal(true);
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to log out. Please try again.');
+    }
   };
 
   if (!authChecked) {
@@ -76,10 +81,10 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-transparent">
+    <div className="px-4 sm:px-6 py-6 min-h-[100dvh] bg-transparent">
       {showLoginModal && (
-        <div className="fixed inset-0 bg-ink/20 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-paper-2-glass backdrop-blur border border-rule-strong p-8 rounded-2xl w-full max-w-sm shadow-xl space-y-6 animate-fadeIn">
+        <div className="fixed inset-0 bg-ink/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-paper-2-glass backdrop-blur border border-rule-strong p-6 sm:p-8 rounded-2xl w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto shadow-xl space-y-6 animate-fadeIn">
             <div className="text-center space-y-2">
               <div className="mx-auto w-12 h-12 bg-accent-bg border border-rule-strong rounded-xl flex items-center justify-center text-accent shadow-sm">
                 <Shield size={24} aria-hidden="true" />
@@ -125,7 +130,7 @@ const AdminPage = () => {
                 {isLoggingIn ? (
                   <>
                     <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                    Authenticating...
+                    Signing in...
                   </>
                 ) : (
                   <>
@@ -141,19 +146,19 @@ const AdminPage = () => {
 
       {user && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center bg-paper-2-glass backdrop-blur border border-rule rounded-xl p-4 shadow-sm max-w-7xl mx-auto">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-paper-2-glass backdrop-blur border border-rule rounded-xl p-4 shadow-sm max-w-7xl mx-auto">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="w-8 h-8 bg-accent-bg border border-rule-strong rounded-lg flex items-center justify-center text-accent">
                 <Shield size={18} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-xs text-ink-2 font-semibold uppercase">Admin Active Session</p>
-                <p className="text-sm font-bold text-ink leading-none mt-1">{user?.email}</p>
+                <p className="text-sm font-bold text-ink leading-snug mt-1 break-all">{user?.email}</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs border border-red-200 bg-error-bg hover:bg-red-100 text-red-600 font-semibold rounded-lg transition-all"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 px-3.5 py-2 text-xs border border-error-border bg-error-bg hover:bg-error-bg text-error font-semibold rounded-lg transition-all"
             >
               <LogOut size={12} aria-hidden="true" />
               Log Out

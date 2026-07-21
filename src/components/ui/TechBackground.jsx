@@ -1,26 +1,39 @@
 'use client';
 
 import React from 'react';
+import ShapeGrid from './ShapeGrid';
 
 const TechBackground = ({ animated = false, showCircuitry = true }) => {
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-      {/* Grid Pattern & Radial Glows Wrapper */}
+      {/* Grid Pattern & Radial Glows Wrapper (Glows only, static grid removed) */}
       <div 
         className="absolute inset-0 w-full h-full transition-all duration-300
                    bg-[#f6f8fa] dark:bg-[#090d16]"
         style={{
           backgroundImage: `
-            linear-gradient(var(--tech-grid-color) 1px, transparent 1px),
-            linear-gradient(90deg, var(--tech-grid-color) 1px, transparent 1px),
             radial-gradient(circle at 50% 50%, var(--tech-glow-center) 0%, var(--tech-glow-center-fade) 25%, transparent 65%),
             radial-gradient(circle at 10% 90%, var(--tech-glow-corner) 0%, var(--tech-glow-corner-fade) 35%, transparent 60%),
             radial-gradient(circle at 90% 10%, var(--tech-glow-corner) 0%, var(--tech-glow-corner-fade) 35%, transparent 60%)
           `,
-          backgroundSize: '32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100%',
+          backgroundSize: '100% 100%, 100% 100%, 100% 100%',
           backgroundPosition: 'center center',
         }}
       />
+
+      {/* Interactive, Animated Shape Grid Background */}
+      <div className="absolute inset-0 w-full h-full opacity-[0.55] dark:opacity-[0.38] transition-opacity duration-300">
+        <ShapeGrid
+          borderColor="var(--color-grid)"
+          hoverFillColor="rgba(var(--raw-accent), 0.15)"
+          fadeColor="rgba(var(--raw-bg), 1)"
+          speed={0.4}
+          squareSize={32}
+          shape="square"
+          hoverTrailAmount={4}
+          direction="diagonal"
+        />
+      </div>
 
       {showCircuitry && (
         <>

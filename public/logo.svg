@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180" role="img" aria-labelledby="dfund-logo-title dfund-logo-desc">
+  <title id="dfund-logo-title">DFund</title>
+  <desc id="dfund-logo-desc">Minimal line-only DFund logo with a connected cube mark.</desc>
+
+  <g transform="translate(32 18)">
+    <path d="M72 30 108 51v42l-36 21-36-21V51Z" fill="none" stroke="#111827" stroke-width="5.5" stroke-linejoin="round"/>
+    <path d="M72 30v31M36 51l36 21 36-21M72 72v42" fill="none" stroke="#111827" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M35 72H18M109 72h17M72 29V14M72 116v14" fill="none" stroke="#6B7280" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="18" cy="72" r="7.5" fill="none" stroke="#111827" stroke-width="4"/>
+    <circle cx="126" cy="72" r="7.5" fill="none" stroke="#111827" stroke-width="4"/>
+    <circle cx="72" cy="14" r="7.5" fill="none" stroke="#111827" stroke-width="4"/>
+    <circle cx="72" cy="130" r="7.5" fill="none" stroke="#111827" stroke-width="4"/>
+  </g>
+
+  <g>
+    <text x="220" y="106" fill="#111827" font-family="Inter, Arial, Helvetica, sans-serif" font-size="76" font-weight="800">DFund</text>
+  </g>
+</svg>
