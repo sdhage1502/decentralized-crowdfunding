@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /campaigns/{campaignId} {
+      // Anyone can read campaigns (used by dashboard and individual pages)
+      allow read: if true;
+      
+      // Anyone can create a campaign, but it must be created with 'pending' status
+      allow create: if request.resource.data.status == 'pending';
+      
+      // Only authenticated users (admins) can update or delete campaigns
+      allow update, delete: if request.auth != null;
+    }
+  }
+}

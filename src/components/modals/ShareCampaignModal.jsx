@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   Facebook, 
   Twitter, 
@@ -19,6 +19,20 @@ import {
 
 const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      const timer = setTimeout(() => setAnimate(true), 10);
+      return () => clearTimeout(timer);
+    } else {
+      setAnimate(false);
+      const timer = setTimeout(() => setShouldRender(false), 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(campaignUrl);
@@ -80,20 +94,26 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
     },
   ];
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   return (
     <div 
-      className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className={`fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-200 ${
+        animate ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="share-campaign-title"
     >
-      <div className="bg-paper-glass backdrop-blur-md border border-rule rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative">
+      <div 
+        className={`bg-paper-glass backdrop-blur-md border border-rule rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto relative transition-all duration-250 [transition-timing-function:var(--ease-out)] ${
+          animate ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
+        }`}
+      >
         <button
           onClick={onClose}
           aria-label="Close share dialog"
-          className="absolute top-4 right-4 p-2 text-ink-2 hover:text-ink hover:bg-paper-2-glass hover:backdrop-blur rounded-full transition-all duration-200"
+          className="absolute top-4 right-4 p-2 text-ink-2 hover:text-ink hover:bg-paper-2-glass hover:backdrop-blur btn-active-feedback rounded-full transition-all duration-200"
         >
           <X size={20} aria-hidden="true" />
         </button>
@@ -116,13 +136,13 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
             <button
               key={name}
               onClick={shareHandlers[name]}
-              className="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-paper-2-glass hover:backdrop-blur transition-all duration-200 group"
+              className="flex min-w-0 min-h-20 flex-col items-center justify-center p-2 sm:p-3 rounded-lg hover:bg-paper-2-glass hover:backdrop-blur btn-active-feedback transition-all duration-200 group"
               aria-label={description}
             >
               <div className={`flex items-center justify-center w-12 h-12 ${bg} rounded-full mb-2 transition-all duration-200 shadow-md`}>
                 {icon}
               </div>
-              <span className="text-xs font-semibold text-ink-2 group-hover:text-ink transition-colors duration-200">{name}</span>
+              <span className="text-[11px] sm:text-xs font-semibold text-ink-2 group-hover:text-ink transition-colors duration-200">{name}</span>
             </button>
           ))}
         </div>
@@ -139,13 +159,13 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
               type="text"
               value={campaignUrl}
               readOnly
-              className="flex-1 px-3 py-2 bg-paper-2-glass backdrop-blur text-ink text-xs focus:outline-none"
+              className="min-w-0 flex-1 px-3 py-2 bg-paper-2-glass backdrop-blur text-ink text-xs focus:outline-none"
             />
             <button
               onClick={handleCopyLink}
-              className={`px-4 py-2 text-white font-bold text-xs transition-all duration-200 shrink-0 ${
+              className={`px-4 py-2 text-white font-bold text-xs transition-all duration-200 btn-active-feedback shrink-0 ${
                 isCopied 
-                  ? 'bg-success hover:bg-green-700' 
+                  ? 'bg-success hover:bg-success/90' 
                   : 'bg-accent hover:bg-accent-hover'
               }`}
             >
@@ -155,7 +175,7 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
               </div>
             </button>
           </div>
-          <p className="text-[10px] text-ink-2 mt-2 flex items-center gap-1 font-medium">
+          <p className="text-[10px] text-ink-2 mt-2 flex items-start gap-1 font-medium break-words">
             <Share size={10} aria-hidden="true" />
             Anyone with this link can view the campaign
           </p>
@@ -164,7 +184,7 @@ const ShareCampaignModal = ({ isOpen, onClose, campaignUrl, campaignTitle }) => 
         {/* Bottom Close button */}
         <button
           onClick={onClose}
-          className="w-full px-6 h-10 bg-paper-3-glass backdrop-blur-sm border border-rule-strong text-ink rounded-lg font-bold text-xs hover:bg-paper-2-glass hover:backdrop-blur transition-all duration-200"
+          className="w-full px-6 h-10 bg-paper-3-glass backdrop-blur-sm border border-rule-strong text-ink rounded-lg font-bold text-xs hover:bg-paper-2-glass hover:backdrop-blur btn-active-feedback transition-all duration-200"
         >
           Close
         </button>

@@ -35,7 +35,7 @@ const UpiQrGenerator = ({ upiId, amount, name = "", merchantCode = "" }) => {
 
   if (!isUpiValid) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-center">
+      <div className="bg-error-bg border border-error-border text-error p-4 rounded-lg text-center break-words">
         Invalid UPI ID format. Please use format: username@provider
       </div>
     );
@@ -55,8 +55,8 @@ const UpiQrGenerator = ({ upiId, amount, name = "", merchantCode = "" }) => {
       </div>
       
       <div className="mt-4 w-full">
-        <div className="flex items-center justify-between bg-paper-3-glass backdrop-blur-sm p-3 rounded-lg border border-rule">
-          <span className="font-semibold text-ink text-xs truncate mr-4">{upiId}</span>
+        <div className="flex min-w-0 items-center justify-between bg-paper-3-glass backdrop-blur-sm p-3 rounded-lg border border-rule">
+          <span className="min-w-0 font-semibold text-ink text-xs truncate mr-4">{upiId}</span>
           <button 
             onClick={handleCopyUpi}
             className="bg-accent hover:bg-accent-hover text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0"

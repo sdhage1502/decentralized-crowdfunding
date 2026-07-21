@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 /**
  * @title CrowdfundingFactory
  * @notice Simple on-chain crowdfunding contract.
@@ -8,23 +11,22 @@ pragma solidity ^0.8.28;
  * Architecture (Hybrid model):
  *  - Firebase Firestore holds campaign metadata (title, description, image, etc.)
  *  - This contract holds ETH contributions and tracks on-chain totals.
- *  - The Firestore campaign document ID is used as the campaignId here so
- *    both data stores stay linked.
+ *  - The Firestore campaign document ID (converted to bytes32) is used as the campaignId.
  *
  * Flow:
  *  1. Admin approves a campaign in Firebase.
- *  2. Frontend calls registerCampaign() with the Firestore doc ID and creator wallet.
+ *  2. Frontend calls registerCampaign() with the bytes32 doc ID and creator wallet.
  *  3. Contributors call contribute(campaignId) with ETH attached.
  *  4. Campaign creator calls withdrawFunds(campaignId) to pull collected ETH.
  */
-contract CrowdfundingFactory {
+contract CrowdfundingFactory is Ownable, ReentrancyGuard {
 
     // ─────────────────────────────────────────────────────────────────────────
     // Data structures
     // ─────────────────────────────────────────────────────────────────────────
 
     struct Campaign {
-        string  firestoreId;      // Firestore document ID (links to off-chain metadata)
+        bytes32 firestoreId;      // Firestore document ID encoded as bytes32
         address payable creator;  // Wallet that receives withdrawals
         uint256 goalWei;          // Funding goal in wei
         uint256 collectedWei;     // Total ETH collected so far
@@ -33,63 +35,54 @@ contract CrowdfundingFactory {
         bool    exists;           // Guard to prevent double-registration
     }
 
-    // campaignId (Firestore doc ID string) → Campaign
-    mapping(string => Campaign) private campaigns;
+    // campaignId (bytes32 format of Firestore doc ID) → Campaign
+    mapping(bytes32 => Campaign) private campaigns;
 
     // Track unique contributors per campaign
-    mapping(string => mapping(address => bool)) private hasContributed;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Access control
-    // ─────────────────────────────────────────────────────────────────────────
-
-    address public owner;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "CrowdfundingFactory: caller is not the owner");
-        _;
-    }
-
-    modifier campaignExists(string memory campaignId) {
-        require(campaigns[campaignId].exists, "CrowdfundingFactory: campaign not found");
-        _;
-    }
-
-    modifier campaignActive(string memory campaignId) {
-        require(campaigns[campaignId].isActive, "CrowdfundingFactory: campaign is not active");
-        _;
-    }
+    mapping(bytes32 => mapping(address => bool)) private hasContributed;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Events
     // ─────────────────────────────────────────────────────────────────────────
 
     event CampaignRegistered(
-        string indexed campaignId,
+        bytes32 indexed campaignId,
         address indexed creator,
         uint256 goalWei
     );
 
     event ContributionReceived(
-        string indexed campaignId,
+        bytes32 indexed campaignId,
         address indexed contributor,
         uint256 amountWei
     );
 
     event FundsWithdrawn(
-        string indexed campaignId,
+        bytes32 indexed campaignId,
         address indexed creator,
         uint256 amountWei
     );
 
-    event CampaignStatusChanged(string indexed campaignId, bool isActive);
+    event CampaignStatusChanged(bytes32 indexed campaignId, bool isActive);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Constructor
     // ─────────────────────────────────────────────────────────────────────────
 
-    constructor() {
-        owner = msg.sender;
+    constructor() Ownable(msg.sender) {}
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Modifiers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    modifier campaignExists(bytes32 campaignId) {
+        require(campaigns[campaignId].exists, "CrowdfundingFactory: campaign not found");
+        _;
+    }
+
+    modifier campaignActive(bytes32 campaignId) {
+        require(campaigns[campaignId].isActive, "CrowdfundingFactory: campaign is not active");
+        _;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -98,20 +91,18 @@ contract CrowdfundingFactory {
 
     /**
      * @notice Register a campaign on-chain after admin approval in Firebase.
-     * @param campaignId  Firestore document ID (links to off-chain metadata)
+     * @param campaignId  bytes32 representation of Firestore document ID
      * @param creator     ETH wallet address of the campaign creator
-     * @param goalEth     Funding goal in ETH (converted to wei internally)
+     * @param goalWei     Funding goal in wei
      */
     function registerCampaign(
-        string memory campaignId,
+        bytes32 campaignId,
         address payable creator,
-        uint256 goalEth
+        uint256 goalWei
     ) external onlyOwner {
         require(!campaigns[campaignId].exists, "CrowdfundingFactory: campaign already registered");
         require(creator != address(0), "CrowdfundingFactory: invalid creator address");
-        require(goalEth > 0, "CrowdfundingFactory: goal must be greater than zero");
-
-        uint256 goalWei = goalEth * 1 ether;
+        require(goalWei > 0, "CrowdfundingFactory: goal must be greater than zero");
 
         campaigns[campaignId] = Campaign({
             firestoreId:      campaignId,
@@ -129,7 +120,7 @@ contract CrowdfundingFactory {
     /**
      * @notice Toggle a campaign's active status (admin only).
      */
-    function setCampaignActive(string memory campaignId, bool active)
+    function setCampaignActive(bytes32 campaignId, bool active)
         external
         onlyOwner
         campaignExists(campaignId)
@@ -144,13 +135,14 @@ contract CrowdfundingFactory {
 
     /**
      * @notice Contribute ETH to a campaign. ETH is held by this contract.
-     * @param campaignId  Firestore document ID of the campaign to support
+     * @param campaignId  bytes32 representation of Firestore document ID
      */
-    function contribute(string memory campaignId)
+    function contribute(bytes32 campaignId)
         external
         payable
         campaignExists(campaignId)
         campaignActive(campaignId)
+        nonReentrant
     {
         require(msg.value > 0, "CrowdfundingFactory: contribution must be greater than zero");
 
@@ -169,11 +161,12 @@ contract CrowdfundingFactory {
 
     /**
      * @notice Withdraw collected ETH. Only the campaign creator can call this.
-     * @param campaignId  Firestore document ID
+     * @param campaignId  bytes32 representation of Firestore document ID
      */
-    function withdrawFunds(string memory campaignId)
+    function withdrawFunds(bytes32 campaignId)
         external
         campaignExists(campaignId)
+        nonReentrant
     {
         Campaign storage c = campaigns[campaignId];
         require(msg.sender == c.creator, "CrowdfundingFactory: only creator can withdraw");
@@ -182,7 +175,8 @@ contract CrowdfundingFactory {
         uint256 amount = c.collectedWei;
         c.collectedWei = 0; // Reset before transfer (re-entrancy guard pattern)
 
-        c.creator.transfer(amount);
+        (bool success, ) = c.creator.call{value: amount}("");
+        require(success, "CrowdfundingFactory: Transfer failed");
 
         emit FundsWithdrawn(campaignId, c.creator, amount);
     }
@@ -193,13 +187,8 @@ contract CrowdfundingFactory {
 
     /**
      * @notice Get on-chain stats for a campaign.
-     * @return collectedWei     Total ETH collected (in wei)
-     * @return contributorCount Number of unique contributors
-     * @return goalWei          Funding goal (in wei)
-     * @return isActive         Whether the campaign is currently active
-     * @return creator          Creator wallet address
      */
-    function getCampaign(string memory campaignId)
+    function getCampaign(bytes32 campaignId)
         external
         view
         campaignExists(campaignId)
@@ -224,7 +213,7 @@ contract CrowdfundingFactory {
     /**
      * @notice Returns true if the campaign has been registered on-chain.
      */
-    function isCampaignRegistered(string memory campaignId)
+    function isCampaignRegistered(bytes32 campaignId)
         external
         view
         returns (bool)

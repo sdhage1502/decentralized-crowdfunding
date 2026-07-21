@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -15,7 +15,22 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 const auth = getAuth(app);
-const db = getFirestore(app);
+let db;
+
+// Enable offline persistence in browser environments
+if (typeof window !== 'undefined') {
+  try {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
+  } catch (error) {
+    // If initializeFirestore fails (e.g., already initialized), fallback to getFirestore
+    db = getFirestore(app);
+  }
+} else {
+  db = getFirestore(app);
+}
+
 const storage = getStorage(app); // Firebase Storage for campaign images
 
 export { auth, db, storage };

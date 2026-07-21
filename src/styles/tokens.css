@@ -1,38 +1,101 @@
-/* Design tokens for the modern-minimal Hallmark theme */
+/* Hallmark - component: header - genre: modern-minimal - theme: design.md - contrast: pass */
+/* Design tokens for the verified Design System Specification */
 :root {
-  --color-paper: oklch(99% 0.003 260);
-  --color-paper-2: oklch(96.5% 0.005 260);
-  --color-paper-3: oklch(93% 0.007 260);
+  /* Raw RGB coordinates (enables Tailwind's opacity modifier, e.g. bg-primary/20) */
+  --raw-bg: 250 250 250; /* #FAFAFA */
+  --raw-surface: 255 255 255; /* #FFFFFF */
+  --raw-surface-alt: 245 245 245; /* #F5F5F5 */
+  --raw-border: 229 229 229; /* #E5E5E5 */
 
-  --color-paper-glass: oklch(99% 0.003 260 / 80%);
-  --color-paper-2-glass: oklch(96.5% 0.005 260 / 70%);
-  --color-paper-3-glass: oklch(93% 0.007 260 / 75%);
-  --color-grid: oklch(50% 0 0 / 0.05);
+  --raw-text-strong: 23 23 23; /* #171717 */
+  --raw-text-body: 82 82 82; /* #525252 */
+  --raw-text-muted: 163 163 163; /* #A3A3A3 */
+  --raw-text-inverse: 255 255 255; /* #FFFFFF */
+
+  --raw-primary: 0 112 243; /* #0070F3 (Vercel Blue) */
+  --raw-primary-hover: 0 92 223;
+  --raw-accent: 94 106 210; /* #5E6AD2 (Linear Purple) */
+  --raw-accent-hover: 81 92 188;
+
+  --raw-success: 22 163 74; /* #16A34A */
+  --raw-warning: 245 158 11; /* #F59E0B */
+  --raw-danger: 220 38 38; /* #DC2626 */
+
+  /* Standard CSS wrappers for direct stylesheet usage and backward-compatibility */
+  --color-paper: rgb(var(--raw-bg));
+  --color-paper-2: rgb(var(--raw-surface));
+  --color-paper-3: rgb(var(--raw-surface-alt));
   
-  --color-ink: oklch(16% 0.008 260);
-  --color-ink-2: oklch(45% 0.006 260);
+  --color-paper-glass: rgb(var(--raw-bg) / 80%);
+  --color-paper-2-glass: rgb(var(--raw-surface) / 82%);
+  --color-paper-3-glass: rgb(var(--raw-surface-alt) / 78%);
+  --color-grid: rgba(100, 116, 139, 0.04);
   
-  --color-rule: oklch(90% 0.004 260);
-  --color-rule-strong: oklch(80% 0.006 260);
+  --color-ink: rgb(var(--raw-text-strong));
+  --color-ink-2: rgb(var(--raw-text-body));
+  --color-muted: rgb(var(--raw-text-muted));
   
-  --color-accent: #3247C5;
-  --color-accent-hover: oklch(38% 0.22 260);
-  --color-accent-bg: oklch(94% 0.02 260);
+  --color-rule: rgb(var(--raw-border));
+  --color-rule-strong: rgb(var(--raw-border));
   
-  --color-success: #28a745;
-  --color-success-bg: oklch(96% 0.015 145);
-  --color-success-border: oklch(85% 0.03 145);
+  --color-accent: rgb(var(--raw-primary)); /* Maps legacy accent uses to primary brand blue */
+  --color-accent-hover: rgb(var(--raw-primary-hover));
+  --color-accent-bg: rgb(var(--raw-primary) / 8%);
+  --color-accent-ink: rgb(var(--raw-text-inverse));
   
-  --color-error: #dc3545;
-  --color-error-bg: oklch(96% 0.015 20);
-  --color-error-border: oklch(85% 0.03 20);
+  --color-success: rgb(var(--raw-success));
+  --color-success-bg: rgb(var(--raw-success) / 8%);
+  --color-success-border: rgb(var(--raw-success) / 30%);
   
-  --color-warning: #e0a800;
-  --color-warning-bg: oklch(97% 0.015 85);
-  --color-warning-border: oklch(88% 0.03 85);
+  --color-error: rgb(var(--raw-danger));
+  --color-error-bg: rgb(var(--raw-danger) / 8%);
+  --color-error-border: rgb(var(--raw-danger) / 30%);
   
-  --color-focus: oklch(55% 0.22 260);
+  --color-warning: rgb(var(--raw-warning));
+  --color-warning-bg: rgb(var(--raw-warning) / 8%);
+  --color-warning-border: rgb(var(--raw-warning) / 30%);
   
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --color-focus: rgb(var(--raw-primary));
+  
+  /* Font system — Plus Jakarta Sans is loaded via Google Fonts in layout.jsx */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--font-body);
+  --font-wordmark: var(--font-display);
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --radius-control: 0.75rem;
+  --radius-nav: 1.125rem;
+  --radius-panel: 1rem;
+  --shadow-nav: 0 18px 55px rgb(var(--raw-text-strong) / 0.08), 0 1px 0 rgb(var(--raw-surface) / 0.86) inset;
+  --shadow-control: 0 10px 24px rgb(var(--raw-primary) / 0.18);
+  --dur-fast: 160ms;
+  --dur-base: 220ms;
+}
+
+.dark {
+  /* Raw RGB coordinates overrides for Dark Mode */
+  --raw-bg: 10 10 10; /* #0A0A0A */
+  --raw-surface: 23 23 23; /* #171717 */
+  --raw-surface-alt: 38 38 38; /* #262626 */
+  --raw-border: 38 38 38; /* #262626 */
+
+  --raw-text-strong: 255 255 255; /* #FFFFFF */
+  --raw-text-body: 163 163 163; /* #A3A3A3 */
+  --raw-text-muted: 115 115 115; /* #737373 */
+  --raw-text-inverse: 10 10 10; /* #0A0A0A */
+
+  --raw-primary: 50 145 255; /* Lighter blue */
+  --raw-primary-hover: 0 112 243; 
+  --raw-accent: 121 131 255; /* Lighter purple */
+  --raw-accent-hover: 94 106 210;
+
+  --raw-success: 34 197 94; /* #22C55E */
+  --raw-warning: 245 158 11; /* #F59E0B */
+  --raw-danger: 239 68 68; /* #EF4444 */
+
+  /* Redeclare grid color for dark mode context */
+  --color-grid: rgba(248, 250, 252, 0.02);
+  --shadow-nav: 0 18px 55px rgb(0 0 0 / 0.28), 0 1px 0 rgb(var(--raw-text-strong) / 0.05) inset;
+  --shadow-control: 0 10px 24px rgb(0 0 0 / 0.24);
 }

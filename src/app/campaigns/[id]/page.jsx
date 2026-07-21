@@ -15,8 +15,9 @@ import { fetchCampaignById, updateCampaignStats } from "../../../utils/campaignS
 import { getCampaignOnChainStats, withdrawCampaignFunds } from "../../../utils/contractService";
 import { useWeb3 } from "../../../context/Web3Context";
 
-import UpiPaymentModal from "../../upi-qr-modal/UpiPaymentModal";
-import ShareCampaignModal from "../../../app/shareModal/ShareCampaignModal";
+import UpiPaymentModal from "../../../components/modals/UpiPaymentModal";
+import ShareCampaignModal from "../../../components/modals/ShareCampaignModal";
+import AnimatedLoader from "../../../components/ui/AnimatedLoader";
 
 const CampaignDetails = () => {
   const [campaign, setCampaign] = useState(null);
@@ -118,13 +119,8 @@ const CampaignDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-transparent">
-        <div className="flex flex-col items-center space-y-3">
-          <Loader2 className="w-10 h-10 text-accent animate-spin" />
-          <p className="text-ink-2 text-sm flex items-center gap-1.5 font-medium">
-            <Info size={16} /> Fetching campaign details...
-          </p>
-        </div>
+      <div className="min-h-[100dvh] flex items-center justify-center bg-transparent py-8 px-4 sm:px-6 lg:px-8">
+        <AnimatedLoader message="Loading campaign details..." />
       </div>
     );
   }
@@ -153,47 +149,50 @@ const CampaignDetails = () => {
     onChainStats && onChainStats.collectedEth > 0;
 
   return (
-    <div className="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[100dvh] bg-transparent py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Back navigation & Share buttons */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 text-xs font-semibold text-ink-2 hover:text-ink transition-colors"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 text-xs font-semibold text-ink-2 hover:text-ink transition-colors"
           >
             <ArrowLeft size={16} /> Back to campaigns
           </button>
           <button
             onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-paper-2-glass backdrop-blur border border-rule hover:bg-paper-3-glass text-xs font-semibold rounded-lg text-ink transition-all"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-3 py-2 bg-paper-2-glass backdrop-blur border border-rule hover:bg-paper-3-glass text-xs font-semibold rounded-lg text-ink transition-all"
           >
             <Share2 size={14} /> Share Campaign
           </button>
         </div>
 
         {/* Split Studio Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Left Column: Visuals and Story */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-5">
             <div className="relative rounded-xl overflow-hidden border border-rule-strong shadow-sm bg-paper-2-glass backdrop-blur">
-              <img
+              <Image
                 src={campaign.image}
                 alt={campaign.title}
-                className="w-full h-80 object-cover"
+                width={800}
+                height={400}
+                className="w-full h-56 sm:h-64 object-cover"
+                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              <div className="absolute bottom-4 left-4 flex gap-2">
-                <span className="bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full border border-white/20">
+              <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+                <span className="bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full border border-white/20 max-w-full truncate">
                   {campaign.category}
                 </span>
                 {onChainStats ? (
-                  <span className="bg-accent text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                  <span className="bg-accent text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 max-w-full">
                     <ExternalLink size={12} /> Verified On-Chain
                   </span>
                 ) : (
-                  <span className="bg-warning text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                  <span className="bg-warning text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 max-w-full">
                     <AlertCircle size={12} /> Pending Registration
                   </span>
                 )}
@@ -201,13 +200,13 @@ const CampaignDetails = () => {
             </div>
 
             {/* Campaign Story */}
-            <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-4">
-              <h1 className="text-2xl font-extrabold text-ink leading-snug">
+            <div className="bg-paper-2-glass backdrop-blur p-5 rounded-xl border border-rule shadow-sm space-y-4">
+              <h1 className="text-2xl font-extrabold text-ink leading-snug break-words">
                 {campaign.title}
               </h1>
               <div className="border-t border-rule pt-4">
                 <h3 className="text-xs font-bold text-ink-2 tracking-wider uppercase mb-2">Campaign Description</h3>
-                <p className="text-ink text-sm leading-relaxed whitespace-pre-line">
+                <p className="text-ink text-sm leading-relaxed whitespace-pre-line break-words">
                   {campaign.description}
                 </p>
               </div>
@@ -222,7 +221,7 @@ const CampaignDetails = () => {
                         href={url.trim()}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs font-semibold text-accent hover:underline"
+                        className="flex min-w-0 items-center gap-2 text-xs font-semibold text-accent hover:underline break-words"
                       >
                         <ExternalLink size={12} /> View verification report {idx + 1}
                       </a>
@@ -234,13 +233,13 @@ const CampaignDetails = () => {
           </div>
 
           {/* Right Column: Funding Status & Tools */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-5">
             
             {/* Goal Card */}
-            <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-6">
+            <div className="bg-paper-2-glass backdrop-blur p-5 rounded-xl border border-rule shadow-sm space-y-5">
               <div>
                 <span className="text-xs font-semibold text-ink-2 block mb-1">Target Funding Goal</span>
-                <div className="flex items-baseline gap-1">
+                <div className="flex flex-wrap items-baseline gap-1">
                   <span className="text-3xl font-extrabold text-ink">{campaign.amount}</span>
                   <span className="text-md font-bold text-accent">ETH</span>
                 </div>
@@ -248,7 +247,7 @@ const CampaignDetails = () => {
 
               {/* Progress */}
               <div className="space-y-2">
-                <div className="flex justify-between items-baseline text-xs">
+                <div className="flex flex-wrap justify-between items-baseline gap-2 text-xs">
                   <span className="font-semibold text-ink-2">Collected thus far</span>
                   <span className="font-mono text-ink font-bold">{displayCollected.toFixed ? displayCollected.toFixed(4) : displayCollected} ETH</span>
                 </div>
@@ -262,7 +261,7 @@ const CampaignDetails = () => {
                   />
                 </div>
                 
-                <div className="flex justify-between items-center text-[10px] text-ink-2 font-medium">
+                <div className="flex flex-wrap justify-between items-center gap-2 text-[10px] text-ink-2 font-medium">
                   <span>{progressPercentage.toFixed(1)}% Completed</span>
                   {isGoalReached && <span className="text-success font-semibold flex items-center gap-0.5"><CheckCircle size={10} /> Fully Funded</span>}
                 </div>
@@ -278,9 +277,9 @@ const CampaignDetails = () => {
                   <span className="text-[10px] font-semibold text-ink-2 uppercase block">Escrow Mode</span>
                   <span className="text-xs font-bold text-ink flex items-center gap-1 mt-0.5">
                     {onChainStats ? (
-                      <><Zap size={12} className="text-purple-600" /> Contract</>
+                      <><Zap size={12} className="text-accent" /> Contract</>
                     ) : (
-                      <><Wallet size={12} className="text-amber-600" /> P2P Fallback</>
+                      <><Wallet size={12} className="text-warning" /> P2P Fallback</>
                     )}
                   </span>
                 </div>
@@ -288,17 +287,17 @@ const CampaignDetails = () => {
             </div>
 
             {/* Donation Area */}
-            <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-4">
+            <div className="bg-paper-2-glass backdrop-blur p-5 rounded-xl border border-rule shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-ink flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-accent" />
                 Contribute to Project
               </h3>
 
               {/* Toggles */}
-              <div className="flex bg-paper-3-glass backdrop-blur-sm rounded-lg p-1 border border-rule">
+              <div className="grid grid-cols-2 bg-paper-3-glass backdrop-blur-sm rounded-lg p-1 border border-rule">
                 <button
                   onClick={() => setPaymentMethod("eth")}
-                  className={`flex-1 py-1.5 text-center text-xs font-semibold rounded-md transition-all ${
+                  className={`min-w-0 py-1.5 px-2 text-center whitespace-nowrap text-xs font-semibold rounded-md transition-all ${
                     paymentMethod === "eth"
                       ? "bg-accent text-white shadow-sm"
                       : "text-ink-2 hover:text-ink"
@@ -309,7 +308,7 @@ const CampaignDetails = () => {
                 <button
                   onClick={() => setPaymentMethod("upi")}
                   disabled={!campaign.upiId}
-                  className="flex-1 py-1.5 text-center text-xs font-semibold rounded-md transition-all text-ink-2 hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-w-0 py-1.5 px-2 text-center whitespace-nowrap text-xs font-semibold rounded-md transition-all text-ink-2 hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   UPI (Rupees)
                 </button>
@@ -331,7 +330,7 @@ const CampaignDetails = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="number"
                       min="0.001"
@@ -339,12 +338,12 @@ const CampaignDetails = () => {
                       value={contributionAmount}
                       onChange={(e) => setContribution(e.target.value)}
                       placeholder="Amount in ETH"
-                      className="flex-1 px-3 py-2 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+                      className="min-w-0 flex-1 px-3 py-2 bg-paper-glass backdrop-blur-md border border-rule-strong rounded-lg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
                     />
                     <button
                       onClick={handleContribute}
                       disabled={isContributing}
-                      className="px-4 py-2 bg-accent hover:bg-accent-hover text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                      className="inline-flex w-full sm:w-auto min-h-11 items-center justify-center px-4 py-2 bg-accent hover:bg-accent-hover text-white font-bold rounded-lg text-xs transition-colors gap-1.5 disabled:opacity-50"
                     >
                       {isContributing ? (
                         <><Loader2 size={12} className="animate-spin" /> Sending...</>
@@ -369,7 +368,7 @@ const CampaignDetails = () => {
                     onClick={() => setShowUpiModal(true)}
                     className="w-full py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
                   >
-                    <CreditCard size={14} /> Pay via UPI QR / Address
+                    <CreditCard size={14} /> Pay via UPI
                   </button>
                 </div>
               )}
@@ -377,9 +376,9 @@ const CampaignDetails = () => {
 
             {/* Creator Panel */}
             {isCreator && (
-              <div className="bg-paper-2-glass backdrop-blur p-6 rounded-xl border border-rule shadow-sm space-y-4">
+              <div className="bg-paper-2-glass backdrop-blur p-5 rounded-xl border border-rule shadow-sm space-y-4">
                 <h3 className="text-sm font-bold text-ink flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-purple-600" />
+                  <Wallet className="w-4 h-4 text-accent" />
                   Creator Panel
                 </h3>
                 {onChainStats ? (
@@ -392,7 +391,7 @@ const CampaignDetails = () => {
                     <button
                       onClick={handleWithdraw}
                       disabled={isWithdrawing || !hasOnChainFunds}
-                      className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2 bg-accent hover:bg-accent-hover disabled:bg-accent/50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
                     >
                       {isWithdrawing ? (
                         <><Loader2 size={12} className="animate-spin" /> Withdrawing...</>

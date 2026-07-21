@@ -14,6 +14,8 @@ import { AlertCircle, Info, X, Check, Copy } from "lucide-react";
 const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
   const [amount, setAmount] = useState("");
   const [isCopied, setIsCopied] = useState(false);
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [animate, setAnimate] = useState(false);
 
   // Generate dynamic UPI payment deep link
   const generateUpiLink = () => {
@@ -24,7 +26,7 @@ const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
     return baseLink;
   };
 
-  // Close modal on Escape key
+  // Close modal on Escape key and handle animations
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.keyCode === 27) onClose();
@@ -32,13 +34,23 @@ const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
     window.addEventListener("keydown", handleEsc);
 
     if (isOpen) {
+      setShouldRender(true);
       document.body.style.overflow = "hidden";
+      const timer = setTimeout(() => setAnimate(true), 10);
+      return () => {
+        window.removeEventListener("keydown", handleEsc);
+        document.body.style.overflow = "unset";
+        clearTimeout(timer);
+      };
+    } else {
+      setAnimate(false);
+      const timer = setTimeout(() => setShouldRender(false), 250);
+      return () => {
+        window.removeEventListener("keydown", handleEsc);
+        document.body.style.overflow = "unset";
+        clearTimeout(timer);
+      };
     }
-
-    return () => {
-      window.removeEventListener("keydown", handleEsc);
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen, onClose]);
 
   // Close on backdrop click
@@ -54,32 +66,38 @@ const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   return (
     <div
       id="upi-modal-backdrop"
-      className="fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className={`fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-200 ${
+        animate ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
       onClick={handleOutsideClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="upi-payment-title"
     >
-      <div className="bg-paper-glass backdrop-blur-md border border-rule rounded-xl overflow-hidden shadow-2xl max-w-md w-full mx-auto relative">
+      <div 
+        className={`bg-paper-glass backdrop-blur-md border border-rule rounded-xl overflow-hidden shadow-2xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto mx-auto relative transition-all duration-250 [transition-timing-function:var(--ease-out)] ${
+          animate ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
+        }`}
+      >
         {/* Header */}
-        <div className="bg-accent-bg border-b border-rule p-5 flex items-center justify-between">
+        <div className="bg-accent-bg border-b border-rule p-4 sm:p-5 flex items-start justify-between gap-3">
           <div>
             <h3 id="upi-payment-title" className="text-lg font-bold text-accent">
               Pay with UPI
             </h3>
-            <p className="text-ink-2 text-xs mt-0.5 font-medium truncate max-w-[300px]">
+            <p className="text-ink-2 text-xs mt-0.5 font-medium truncate max-w-[min(18rem,70vw)]">
               {campaignTitle}
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close UPI payment dialog"
-            className="p-1.5 rounded-full hover:bg-paper-3-glass hover:backdrop-blur-sm text-ink-2 hover:text-ink transition-colors"
+            className="p-1.5 rounded-full hover:bg-paper-3-glass hover:backdrop-blur-sm text-ink-2 hover:text-ink btn-active-feedback transition-colors"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -96,14 +114,14 @@ const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           {/* Amount input */}
           <div>
             <label
               className="block text-xs font-semibold text-ink-2 mb-1.5 uppercase tracking-wider"
               htmlFor="upi-amount"
             >
-              Enter Amount (₹)
+              Enter Amount (INR)
             </label>
             <input
               type="number"
@@ -136,15 +154,15 @@ const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
           </div>
 
           {/* UPI ID copy row */}
-          <div className="flex items-center justify-between bg-paper-2-glass backdrop-blur p-3 rounded-lg border border-rule">
-            <span className="font-mono text-ink text-xs truncate mr-4">
+          <div className="flex min-w-0 items-center justify-between bg-paper-2-glass backdrop-blur p-3 rounded-lg border border-rule">
+            <span className="min-w-0 font-mono text-ink text-xs truncate mr-4">
               {upiId}
             </span>
             <button
               onClick={copyUpiId}
-              className={`px-3 py-1.5 text-white font-bold text-xs rounded transition-all duration-200 shrink-0 ${
+              className={`px-3 py-1.5 text-white font-bold text-xs rounded btn-active-feedback transition-all duration-200 shrink-0 ${
                 isCopied 
-                  ? 'bg-success hover:bg-green-700' 
+                  ? 'bg-success hover:bg-success/90' 
                   : 'bg-accent hover:bg-accent-hover'
               }`}
             >
@@ -161,7 +179,7 @@ const UpiPaymentModal = ({ isOpen, onClose, upiId, campaignTitle }) => {
 
           <button
             onClick={onClose}
-            className="w-full px-6 h-10 bg-paper-3-glass backdrop-blur-sm border border-rule-strong text-ink rounded-lg font-bold text-xs hover:bg-paper-2-glass hover:backdrop-blur transition-all duration-200"
+            className="w-full px-6 h-10 bg-paper-3-glass backdrop-blur-sm border border-rule-strong text-ink rounded-lg font-bold text-xs hover:bg-paper-2-glass hover:backdrop-blur btn-active-feedback transition-all duration-200"
           >
             Close
           </button>
