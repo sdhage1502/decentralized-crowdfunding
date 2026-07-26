@@ -29,7 +29,15 @@
   --color-paper-glass: rgb(var(--raw-bg) / 80%);
   --color-paper-2-glass: rgb(var(--raw-surface) / 82%);
   --color-paper-3-glass: rgb(var(--raw-surface-alt) / 78%);
-  --color-grid: rgba(100, 116, 139, 0.04);
+  --color-grid: rgba(100, 116, 139, 0.18);
+  --color-grid-line: rgba(15, 23, 42, 0.22);
+  --color-grid-dot: rgba(15, 23, 42, 0.45);
+
+  /* Ambient glow tokens for the global layered background */
+  --ambient-primary: rgba(0, 112, 243, 0.045);
+  --ambient-primary-fade: rgba(0, 112, 243, 0.015);
+  --ambient-secondary: rgba(94, 106, 210, 0.035);
+  --ambient-secondary-fade: rgba(94, 106, 210, 0.01);
   
   --color-ink: rgb(var(--raw-text-strong));
   --color-ink-2: rgb(var(--raw-text-body));
@@ -95,7 +103,16 @@
   --raw-danger: 239 68 68; /* #EF4444 */
 
   /* Redeclare grid color for dark mode context */
-  --color-grid: rgba(248, 250, 252, 0.02);
+  --color-grid: rgba(248, 250, 252, 0.15);
+  --color-grid-line: rgba(248, 250, 252, 0.22);
+  --color-grid-dot: rgba(248, 250, 252, 0.50);
+
+  /* Ambient glow tokens — dark mode */
+  --ambient-primary: rgba(50, 145, 255, 0.08);
+  --ambient-primary-fade: rgba(50, 145, 255, 0.025);
+  --ambient-secondary: rgba(121, 131, 255, 0.06);
+  --ambient-secondary-fade: rgba(121, 131, 255, 0.015);
+
   --shadow-nav: 0 18px 55px rgb(0 0 0 / 0.28), 0 1px 0 rgb(var(--raw-text-strong) / 0.05) inset;
   --shadow-control: 0 10px 24px rgb(0 0 0 / 0.24);
 }

@@ -18,6 +18,8 @@ import {
   User,
 } from "lucide-react";
 import { useWeb3 } from "../../context/Web3Context";
+import useENS from "../../hooks/useENS";
+import ThemeToggle from "./ThemeToggle";
 
 const Header = () => {
   const { account, connectWallet, isLoading } = useWeb3();
@@ -72,8 +74,10 @@ const Header = () => {
     },
   ];
 
+  const { ensName } = useENS(account);
+
   const walletLabel = account
-    ? `${account.slice(0, 6)}...${account.slice(-4)}`
+    ? (ensName || `${account.slice(0, 6)}...${account.slice(-4)}`)
     : isLoading
       ? "Connecting"
       : "Connect Wallet";
@@ -107,25 +111,25 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-2 sm:top-4 z-50 w-full px-3 sm:px-6 pointer-events-none">
-        <div className="relative grid grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(10rem,1fr)_auto_minmax(12rem,1fr)] items-center gap-4 w-[min(100%,72rem)] min-h-[3.5rem] md:min-h-[4rem] mx-auto py-2 px-2.5 sm:px-3 md:py-2 md:px-3 md:pl-4 border border-black/5 rounded-full bg-white/85 shadow-sm pointer-events-auto backdrop-blur-md transition-all duration-300">
+        <div className="relative grid grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(10rem,1fr)_auto_minmax(12rem,1fr)] items-center gap-4 w-[min(100%,72rem)] min-h-[3.5rem] md:min-h-[4rem] mx-auto py-2 px-2.5 sm:px-3 md:py-2 md:px-3 md:pl-4 border border-black/5 dark:border-white/10 rounded-full bg-white/85 dark:bg-[#0a0a0a]/80 shadow-sm dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] pointer-events-auto backdrop-blur-md transition-all duration-300">
           <Link href="/" className="inline-flex items-center justify-self-start min-w-0 w-max h-12 md:h-[3.5rem] px-1 sm:px-2 rounded-full leading-none transition-all duration-300 hover:opacity-100 hover:-translate-y-0.5 active:translate-y-[1px] group" aria-label="DFund Home">
           <Image
             src="/logo.svg"
             alt="DFund Logo"
             width={120}
             height={40}
-            className="block w-auto h-9 md:h-10 object-contain origin-left transition-transform duration-[400ms] ease-out group-hover:scale-[1.03]"
+            className="block w-auto h-9 md:h-10 object-contain origin-left transition-transform duration-[400ms] ease-out group-hover:scale-[1.03] dark:brightness-0 dark:invert"
             priority
           />
         </Link>
 
         <nav className="hidden lg:flex justify-center min-w-0" aria-label="Primary navigation">
-          <ul className="flex items-center gap-1 p-1 border border-black/5 rounded-full bg-black/[0.02] dark:bg-white/[0.02] dark:border-white/10">
+          <ul className="flex items-center gap-1 p-1 border border-black/5 rounded-full bg-black/[0.02] dark:bg-white/[0.04] dark:border-white/10">
             {navItems.map(({ label, href, active, onClick, type }) => {
               const className = `inline-flex justify-center items-center gap-1.5 min-h-[2.25rem] px-4 rounded-full font-sans text-[0.8125rem] font-semibold transition-all duration-300 hover:-translate-y-[1px] active:translate-y-[1px] ${
                 active 
-                  ? "bg-white text-ink shadow-sm dark:bg-[#222] dark:text-white" 
-                  : "text-muted hover:bg-black/5 hover:text-ink dark:hover:bg-white/5 dark:hover:text-white"
+                  ? "bg-white text-ink shadow-sm dark:bg-white/15 dark:text-white dark:shadow-none" 
+                  : "text-muted hover:bg-black/5 hover:text-ink dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
               }`;
 
               if (type === "link") {
@@ -158,13 +162,13 @@ const Header = () => {
           </ul>
         </nav>
 
-        <div className="hidden lg:flex items-center justify-end gap-3 min-w-0">
+        <div className="hidden lg:flex items-center justify-end gap-2.5 min-w-0">
           <div className="flex items-center gap-2 mr-2 text-muted">
             <a
               href="https://github.com/sdhage1502"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 hover:bg-black/5 hover:text-ink dark:hover:bg-white/10 dark:hover:text-white active:scale-95"
+              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 hover:bg-black/5 hover:text-ink dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white active:scale-95"
               aria-label="GitHub (opens in new tab)"
             >
               <Github size={18} strokeWidth={2} />
@@ -173,15 +177,16 @@ const Header = () => {
               href="https://portfolio.shreyashdhage.in/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 hover:bg-black/5 hover:text-ink dark:hover:bg-white/10 dark:hover:text-white active:scale-95"
+              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 hover:bg-black/5 hover:text-ink dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white active:scale-95"
               aria-label="Developer Portfolio (opens in new tab)"
             >
               <User size={18} strokeWidth={2} />
             </a>
+            <ThemeToggle />
           </div>
           <button
             onClick={() => router.push('/dashboard')}
-            className="group inline-flex items-center justify-center gap-2 min-h-[2.5rem] px-4 rounded-full bg-ink text-white text-[0.8125rem] font-semibold shadow-sm transition-all duration-300 hover:opacity-90 hover-lift-glow active:scale-95 dark:bg-white dark:text-ink"
+            className="group inline-flex items-center justify-center gap-2 min-h-[2.5rem] px-4 rounded-full bg-ink text-white text-[0.8125rem] font-semibold shadow-sm transition-all duration-300 hover:opacity-90 hover-lift-glow active:scale-95 dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-slate-200"
           >
             <span className="whitespace-nowrap">Explore Campaigns</span>
             <ArrowUpRight size={14} strokeWidth={2.5} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -189,33 +194,43 @@ const Header = () => {
           {renderWallet("desktop")}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isMobileMenuOpen}
-          aria-controls="mobile-navigation"
-          className="inline-flex lg:hidden justify-center items-center justify-self-end w-11 h-11 sm:w-12 sm:h-12 border border-black/5 rounded-full bg-white/80 text-ink shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md active:scale-95 z-50"
-        >
-          <div className="relative w-5 h-4 flex flex-col justify-center gap-1">
-            <span className={`block w-full h-[2px] bg-ink rounded-sm transition-all duration-300 origin-center ${isMobileMenuOpen ? 'translate-y-[0.375rem] rotate-45' : ''}`}></span>
-            <span className={`block w-full h-[2px] bg-ink rounded-sm transition-all duration-300 origin-center ${isMobileMenuOpen ? 'opacity-0 -translate-x-2' : ''}`}></span>
-            <span className={`block w-full h-[2px] bg-ink rounded-sm transition-all duration-300 origin-center ${isMobileMenuOpen ? '-translate-y-[0.375rem] -rotate-45' : ''}`}></span>
-          </div>
-        </button>
+        <div className="flex lg:hidden items-center justify-self-end gap-1.5 sm:gap-2">
+          <ThemeToggle className="w-9 h-9 sm:w-10 sm:h-10" />
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="group inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-ink text-white text-[0.78rem] sm:text-[0.8125rem] font-semibold shadow-sm transition-all duration-300 hover:opacity-90 active:scale-95 dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-slate-200"
+          >
+            <span className="whitespace-nowrap">Explore</span>
+            <ArrowUpRight size={14} strokeWidth={2.5} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-navigation"
+            className="inline-flex justify-center items-center w-9 h-9 sm:w-10 sm:h-10 border border-black/5 dark:border-white/10 rounded-full bg-white/80 dark:bg-[#111827]/90 text-ink dark:text-white shadow-sm transition-all duration-300 hover:bg-white dark:hover:bg-[#1f2937] hover:shadow-md active:scale-95 z-50 shrink-0"
+          >
+            <div className="relative w-4 h-3.5 flex flex-col justify-center gap-1">
+              <span className={`block w-full h-[2px] bg-ink dark:bg-white rounded-sm transition-all duration-300 origin-center ${isMobileMenuOpen ? 'translate-y-[0.3125rem] rotate-45' : ''}`}></span>
+              <span className={`block w-full h-[2px] bg-ink dark:bg-white rounded-sm transition-all duration-300 origin-center ${isMobileMenuOpen ? 'opacity-0 -translate-x-2' : ''}`}></span>
+              <span className={`block w-full h-[2px] bg-ink dark:bg-white rounded-sm transition-all duration-300 origin-center ${isMobileMenuOpen ? '-translate-y-[0.3125rem] -rotate-45' : ''}`}></span>
+            </div>
+          </button>
+        </div>
 
         </div>
       </header>
 
       <div
         id="mobile-navigation"
-        className={`lg:hidden fixed inset-x-0 top-0 bottom-0 pt-[calc(5.5rem+env(safe-area-inset-top))] px-4 sm:px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] overflow-y-auto bg-white/95 shadow-2xl origin-top backdrop-blur-lg backdrop-saturate-150 transition-all duration-500 ease-out z-40 dark:bg-[#0A0A0A]/95 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto visible" : "opacity-0 pointer-events-none invisible"}`}
+        className={`lg:hidden fixed inset-x-0 top-0 bottom-0 pt-[calc(5.5rem+env(safe-area-inset-top))] px-4 sm:px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] overflow-y-auto bg-white/95 dark:bg-[#090d16]/95 shadow-2xl origin-top backdrop-blur-lg backdrop-saturate-150 transition-all duration-500 ease-out z-40 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto visible" : "opacity-0 pointer-events-none invisible"}`}
       >
         <nav aria-label="Mobile navigation">
           <ul className="grid gap-1">
             {navItems.map(({ label, href, Icon, active, onClick, type }, index) => {
-              const className = `flex items-center gap-3 min-h-[3rem] py-3.5 px-5 rounded-lg text-ink text-lg font-medium no-underline transition-all duration-300 hover:bg-black/5 ${
-                active ? "bg-black/5" : ""
+              const className = `flex items-center gap-3 min-h-[3rem] py-3.5 px-5 rounded-lg text-ink dark:text-white text-lg font-medium no-underline transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5 ${
+                active ? "bg-black/5 dark:bg-white/10" : ""
               } ${isMobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`;
               
               const handleClick = (event) => {

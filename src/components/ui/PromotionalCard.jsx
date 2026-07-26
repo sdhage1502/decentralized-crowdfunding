@@ -44,7 +44,7 @@ const PromotionalCard = () => {
 
         <div className="relative z-10 space-y-6">
           <div className="mb-6 flex justify-center">
-            <Image src="/logo.svg" alt="DFund Logo" width={160} height={80} className="h-16 sm:h-20 w-auto object-contain opacity-95" priority />
+            <Image src="/logo.svg" alt="DFund Logo" width={160} height={80} className="h-16 sm:h-20 w-auto object-contain opacity-95 dark:brightness-0 dark:invert" priority />
           </div>
           
           <h2 className="text-2xl sm:text-4xl font-extrabold text-ink tracking-tight leading-tight">
