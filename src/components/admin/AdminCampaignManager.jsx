@@ -382,10 +382,10 @@ const AdminCampaignManager = () => {
                 width={400}
                 height={200}
                 className="w-full h-32 object-cover"
+                unoptimized
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
-                unoptimized
               />
             </div>
           )}

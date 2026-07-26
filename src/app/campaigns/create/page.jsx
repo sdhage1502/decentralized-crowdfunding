@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useWeb3 } from '../../../context/Web3Context';
-import { uploadFile, deleteFileByUrl } from '../../../utils/storageService';
 import { createCampaign } from '../../../utils/campaignService';
 import {
   Upload, X, CheckCircle, Clock, Link as LinkIcon, Camera, Loader2, Sparkles, Check,
@@ -110,10 +109,26 @@ const CreateCampaign = () => {
 
     try {
       setIsUploading(true);
-      const downloadURL = await uploadFile(file, 'campaigns', (progress) => {
-        setUploadProgress(progress);
+      setUploadProgress(30);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('teacherId', account || 'default');
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
       });
-      setCampaign((prev) => ({ ...prev, image: downloadURL }));
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Upload failed');
+      }
+
+      const data = await response.json();
+      setUploadProgress(100);
+      
+      setCampaign((prev) => ({ ...prev, image: data.url }));
       toast.success('Image uploaded successfully');
     } catch (err) {
       console.error('Image upload failed:', err);
@@ -169,9 +184,7 @@ const CreateCampaign = () => {
       toast.error("Error submitting campaign. Please try again.");
       
       if (uploadType === 'file' && campaign.image) {
-        toast.loading('Cleaning up uploaded image...', { id: 'cleanup' });
-        await deleteFileByUrl(campaign.image);
-        toast.dismiss('cleanup');
+        // Cleanup not implemented for Cloudinary in this API route
         clearImage();
       }
     } finally {

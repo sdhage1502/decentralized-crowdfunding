@@ -1,6 +1,6 @@
 # 🧠 Decentralized Crowdfunding DApp
 
-A **decentralized crowdfunding platform** built using **Next.js (App Router)** on the frontend and **Solidity smart contracts** deployed to an Ethereum-compatible blockchain. This DApp enables users to **create fundraising campaigns**, **view campaign details**, and **contribute ETH** securely using MetaMask. All campaign metadata is stored in **Firebase Firestore**, while financial transactions and totals are stored **on-chain**, ensuring full **transparency, security, and decentralization**.
+A **decentralized crowdfunding platform** built using **Next.js (App Router)** on the frontend and **Solidity smart contracts** deployed to an Ethereum-compatible blockchain. This DApp enables users to **create fundraising campaigns**, **view campaign details**, and **contribute ETH** securely using MetaMask. All campaign metadata is stored in **Firebase Firestore**, media assets are managed by **Cloudinary**, while financial transactions and totals are stored **on-chain**, ensuring full **transparency, security, and decentralization**.
 
 ---
 
@@ -49,15 +49,15 @@ The Decentralized Crowdfunding DApp was built to solve the transparency and trus
 The application utilizes a **Hybrid Architecture**:
 
 1. **Frontend (Next.js):** Handles the UI, routing, and user interactions.
-2. **Off-chain DB (Firebase Firestore & Storage):** Stores heavy campaign metadata (images, rich text descriptions, categories) to save gas costs on Ethereum.
-3. **On-chain State (Ethereum Smart Contract):** Tracks ETH balances, individual contributions, and manages fund withdrawals securely.
+2. **Off-chain DB (Firebase Firestore & Cloudinary):** Stores heavy campaign metadata (rich text descriptions, categories) in Firebase, and images in Cloudinary to save gas costs on Ethereum.
+3. **On-chain State (Ethereum Smart Contract):** Tracks ETH balances, individual contributions, and manages fund withdrawals securely via a `bytes32` mapped reference to the Firestore document.
 
 ### Flow Diagram
 
 ```mermaid
 graph TD
     A[User/Browser] -->|Creates Campaign| B(Next.js App)
-    B -->|Uploads Image| C(Firebase Storage)
+    B -->|Uploads Image via API| C(Cloudinary)
     B -->|Saves Metadata| D[(Firestore DB)]
     D -->|Doc ID| B
     B -->|Calls registerCampaign| E(Smart Contract)
@@ -73,12 +73,13 @@ graph TD
 
 - 🔐 **Decentralized & Trustless** — Financial state is governed by the `CrowdfundingFactory.sol` smart contract.
 - 💰 **Crypto Funding (ETH)** — Contribute securely using MetaMask with `ethers.js`.
-- 🧾 **Real-time Sync** — Off-chain metadata (Firestore) and on-chain metrics sync seamlessly.
-- 🔍 **Campaign Discovery** — Search, filter, and view detailed stats (goals, unique contributors).
-- 🛡️ **Admin Approval System** — Admin panel to approve/reject campaigns before they go live on-chain.
-- 📤 **Social Sharing** — Built-in modal for sharing campaigns across social platforms.
-- 🖼️ **Modern UI/UX** — Responsive, accessible design using Tailwind CSS, Radix UI (via Shadcn), and GSAP animations.
-- 🪙 **UPI Payment Fallback** — Optional UPI QR code generation for non-crypto contributors.
+- 🧾 **Real-Time Data Sync** — Off-chain metadata (Firestore `onSnapshot`) and on-chain metrics sync instantly without page reloads.
+- 🆔 **ENS Name Resolution** — Custom `useENS` hook maps raw `0x...` Ethereum addresses to human-readable ENS names (e.g., vitalik.eth).
+- 🔄 **Transaction Lifecycle Tracker** — Robust `useTransaction` hook monitors blockchain states (`idle → pending → confirming → confirmed`) with automatic toast notifications.
+- 🖼️ **Cloudinary Image Uploads** — Direct Next.js API route integration for fast and optimized campaign image hosting.
+- 🎨 **Premium UI & GSAP Animations** — Hydration-safe Dark/Light mode (`next-themes`), scroll-triggered animated counters, custom cursor-tracking spotlight background, and exact-dimension glassmorphic skeleton shimmer loaders.
+- 🔍 **Dynamic SEO & OG Meta Tags** — Server-rendered Open Graph meta tags for rich social sharing previews of campaigns.
+- 🛡️ **Admin Approval System** — Admin panel to approve/reject campaigns before they go live on-chain with 'Verified' badges.
 
 ---
 
@@ -86,14 +87,13 @@ graph TD
 
 | Category | Technology | Reason for choosing |
 | :--- | :--- | :--- |
-| **Framework** | Next.js 15 (App Router) | Server-side rendering, API routes, and optimized routing. |
-| **Runtime** | Node.js | Fast, scalable JavaScript runtime. |
-| **Styling** | Tailwind CSS v3 | Utility-first styling for rapid UI development and custom design tokens. |
-| **Animations** | GSAP | High-performance, complex web animations. |
+| **Framework** | Next.js 15 (App Router) | Server-side rendering, API routes, dynamic OG metadata, and optimized routing. |
+| **Styling & UI** | Tailwind CSS v3, next-themes | Utility-first styling for rapid UI development and hydration-safe dark mode. |
+| **Animations** | GSAP | High-performance, complex web animations (animated counters, spotlights). |
 | **Smart Contracts**| Solidity (v0.8.28), Hardhat | Industry standard for Ethereum contract development and testing. |
 | **Web3 Client** | Ethers.js (v6) | Connecting frontend UI to Ethereum blockchain and MetaMask. |
-| **Database** | Firebase Firestore | NoSQL document database for fast, off-chain metadata storage. |
-| **Storage** | Firebase Storage | Blob storage for user-uploaded campaign images. |
+| **Database** | Firebase Firestore | NoSQL document database for fast, off-chain metadata storage and real-time listeners. |
+| **Media Storage**| Cloudinary | Fast, optimized image hosting via Next.js serverless API routes. |
 | **UI Components**| Radix UI / Lucide React | Accessible headless components and modern iconography. |
 
 ---
@@ -107,25 +107,26 @@ graph TD
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── admin/              # Admin dashboard for approving campaigns
-│   │   ├── api/                # Next.js Serverless API routes
+│   │   ├── api/upload/         # Cloudinary image upload API route
 │   │   ├── campaigns/          # Public campaign listings and details
 │   │   ├── dashboard/          # Creator's private dashboard
 │   │   ├── layout.jsx          # Root layout and context providers
 │   │   └── page.jsx            # Landing page
 │   ├── components/             # Reusable React components
-│   │   ├── ui/                 # Base UI components (buttons, cards, loaders)
+│   │   ├── ui/                 # Base UI components (ThemeToggle, Skeletons, Headers)
 │   │   └── modals/             # Share, UPI, and Confirmation modals
 │   ├── context/                # React Context (e.g., Web3 connection state)
+│   ├── hooks/                  # Custom hooks (`useENS`, `useTransaction`)
+│   ├── lib/                    # SDK configurations (Cloudinary)
 │   ├── firebase/               # Firebase initialization and config (`config.js`)
 │   ├── utils/                  # Helper functions and services
 │   │   ├── campaignService.js  # Firestore CRUD operations
 │   │   ├── contractService.js  # Ethers.js contract interactions
-│   │   ├── contributeToWallet.js # Contribution logic
 │   │   └── constants.js        # ABI and Contract Addresses
 ├── test/                       # Hardhat smart contract test suites
 ├── public/                     # Static assets (images, fonts, icons)
 ├── hardhat.config.js           # Hardhat configuration (networks, compiler)
-├── tailwind.config.mjs         # Custom Tailwind tokens and theme config
+├── next.config.mjs             # Next.js config (Remote patterns for images)
 └── package.json                # Project dependencies and scripts
 ```
 
@@ -137,7 +138,8 @@ graph TD
 
 - **Node.js** (v18 or higher)
 - **MetaMask** browser extension installed.
-- **Firebase Account** with Firestore and Storage enabled.
+- **Firebase Account** with Firestore enabled.
+- **Cloudinary Account** for image storage.
 
 ### Installation
 
@@ -154,7 +156,7 @@ graph TD
 
 ### Environment Variables
 
-Create a `.env.local` file in the root directory. This file is required for Firebase integration and Next.js setup.
+Create a `.env.local` file in the root directory. This file is required for Firebase integration, Cloudinary, and Next.js setup.
 
 ```env
 # Firebase Configuration (Get these from your Firebase Console)
@@ -164,6 +166,11 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-messaging-sender-id"
 NEXT_PUBLIC_FIREBASE_APP_ID="your-app-id"
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
 
 # Smart Contract (Set after deploying via Hardhat)
 NEXT_PUBLIC_CONTRACT_ADDRESS="your-deployed-contract-address"
@@ -207,9 +214,9 @@ To run a local blockchain and deploy the contract for development:
 
 ## 📏 Code Quality & Standards
 
-- **Component Architecture:** Functional React components using hooks. Keep UI components stateless where possible.
+- **Component Architecture:** Functional React components using hooks. Custom hooks (`useENS`, `useTransaction`) encapsulate complex state logic.
 - **Services:** All external API, Firebase, and Blockchain calls are abstracted into `src/utils/*Service.js` files.
-- **Styling:** Tailwind CSS using custom CSS variables (e.g., `bg`, `surface`, `primary`) defined in `tailwind.config.mjs` to support Dark Mode natively.
+- **Styling:** Tailwind CSS using custom CSS variables (e.g., `bg`, `surface`, `primary`) defined in `globals.css` to support `next-themes` Dark Mode natively.
 - **Formatting:** ESLint is configured for Next.js strict mode. 
 
 ---
@@ -235,15 +242,16 @@ npx hardhat run scripts/deploy.js --network sepolia
 ## 🛠 Troubleshooting
 
 - **MetaMask doesn't connect:** Ensure you are on the correct network (Localhost 8545 for dev) and that the Hardhat node is running. Reset your MetaMask account if you get nonce errors.
-- **Firebase Permission Denied:** Check your Firestore and Storage security rules (`firestore.rules` and `storage.rules`). Ensure read/write access is properly configured.
+- **Firebase Permission Denied:** Check your Firestore security rules (`firestore.rules`). Ensure read/write access is properly configured.
+- **Image Upload Fails:** Ensure your `CLOUDINARY_*` environment variables are correctly set.
 - **Contract Calls Failing:** Verify that `NEXT_PUBLIC_CONTRACT_ADDRESS` matches exactly with the address generated by your recent Hardhat deployment.
 
 ---
 
 ## ❓ FAQ
 
-**Q: Why use Firebase if it's a Decentralized App?**
-A: Storing large strings (like descriptions) and images on Ethereum is prohibitively expensive. We use a hybrid model: heavy data off-chain (Firebase), financial truth on-chain.
+**Q: Why use Firebase/Cloudinary if it's a Decentralized App?**
+A: Storing large strings (like descriptions) and images on Ethereum is prohibitively expensive. We use a hybrid model: heavy data off-chain (Firebase/Cloudinary), financial truth on-chain (Solidity), bridging them via a `bytes32` document ID.
 
 **Q: Can a creator withdraw funds before the goal is met?**
 A: Currently, yes. The smart contract allows the creator to withdraw any collected funds at any time.
