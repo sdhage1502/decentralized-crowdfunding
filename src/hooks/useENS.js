@@ -39,7 +39,9 @@ export const useENS = (address) => {
     const resolve = async () => {
       setIsLoading(true);
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        // Use a public Mainnet provider for reliable ENS resolution
+        // regardless of which network the user's wallet is connected to
+        const provider = new ethers.JsonRpcProvider('https://cloudflare-eth.com');
         const name = await provider.lookupAddress(address);
 
         if (cancelledRef.current) return;
