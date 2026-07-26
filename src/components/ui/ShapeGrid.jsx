@@ -27,11 +27,11 @@ const resolveColor = (colorStr, element) => {
 const ShapeGrid = ({
   direction = 'right',
   speed = 1,
-  borderColor = 'var(--color-grid)',
-  squareSize = 40,
-  hoverFillColor = 'rgba(var(--raw-accent), 0.15)',
+  borderColor = 'var(--color-grid-line)',
+  squareSize = 36,
+  hoverFillColor = 'rgba(var(--raw-accent), 0.18)',
   shape = 'square',
-  hoverTrailAmount = 0,
+  hoverTrailAmount = 4,
   fadeColor = 'rgba(var(--raw-bg), 1)',
   className = ''
 }) => {
@@ -44,9 +44,9 @@ const ShapeGrid = ({
   const trailCells = useRef([]);
   const cellOpacities = useRef(new Map());
   const resolvedColors = useRef({
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-    hoverFillColor: 'rgba(0, 0, 0, 0.1)',
-    fadeColor: 'rgba(255, 255, 255, 1)'
+    borderColor: 'rgba(15, 23, 42, 0.15)',
+    hoverFillColor: 'rgba(0, 112, 243, 0.18)',
+    fadeColor: 'rgba(250, 250, 250, 1)'
   });
 
   useEffect(() => {

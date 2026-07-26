@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import React, { useEffect, useState, useMemo } from 'react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,7 +9,10 @@ import ethicon from '../../../public/ethereum-logo.svg';
 import { Target, TrendingUp, Users, CheckCircle, Zap, Globe, Loader2, Search, ChevronLeft, ChevronRight, Clock, AlertTriangle } from "lucide-react";
 import { db } from '../../firebase/config';
 import PromotionalCard from '../../components/ui/PromotionalCard';
-import AnimatedLoader from '../../components/ui/AnimatedLoader';
+import AnimatedCounter from '../../components/ui/AnimatedCounter';
+import SkeletonCard from '../../components/ui/SkeletonCard';
+import SkeletonStats from '../../components/ui/SkeletonStats';
+import VerifiedBadge from '../../components/ui/VerifiedBadge';
 
 const Dashboard = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -18,38 +21,43 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("urgency"); // "urgency", "date", "progress"
+  const [activeCategory, setActiveCategory] = useState(null); // Category filter
   const campaignsPerPage = 6;
 
   const router = useRouter();
 
+  // ─── Real-time Firestore listener (Integration #6) ───
   useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        setLoading(true);
-        
-        // Only fetch approved and active campaigns
-        const q = query(
-          collection(db, 'campaigns'),
-          where('status', '==', 'approved'),
-          where('isActive', '==', true)
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const campaignList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        
-        setCampaigns(campaignList);
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    setLoading(true);
 
-    fetchCampaigns();
+    const q = query(
+      collection(db, 'campaigns'),
+      where('status', '==', 'approved'),
+      where('isActive', '==', true)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const campaignList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setCampaigns(campaignList);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching campaigns:', error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  // ─── Extract unique categories (Integration #10) ───
+  const categories = useMemo(() => {
+    const cats = campaigns
+      .map(c => c.category)
+      .filter(Boolean);
+    return [...new Set(cats)].sort();
+  }, [campaigns]);
 
   const getUrgencyPriority = (urgency) => {
     const priorities = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -73,14 +81,17 @@ const Dashboard = () => {
     });
   };
 
-  // Filter and sort campaigns
+  // Filter and sort campaigns (with category filter)
   const filteredAndSortedCampaigns = campaigns
     .filter((campaign) => {
-      return (
+      const matchesSearch =
         campaign.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         campaign.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        campaign.category?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+        campaign.category?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCategory = !activeCategory || campaign.category === activeCategory;
+
+      return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -201,39 +212,88 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          {[
-            { icon: Globe, label: "Total Pools", value: stats.totalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
-            { icon: ethicon, label: "Total Raised", value: `${stats.totalRaised.toFixed(3)} ETH`, isImage: true, bg: "bg-paper-2-glass backdrop-blur" },
-            { icon: Zap, label: "Active", value: stats.activeCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
-            { icon: CheckCircle, label: "Completed", value: stats.completedCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
-            { icon: AlertTriangle, label: "Critical", value: stats.criticalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
-            { icon: Clock, label: "High Urgency", value: stats.highUrgencyCampaigns, bg: "bg-paper-2-glass backdrop-blur" }
-          ].map((stat, index) => (
-            <div
-              key={index}
-              className={`${stat.bg} min-w-0 p-3.5 rounded-xl border border-rule flex flex-col items-center justify-center text-center gap-1 shadow-sm hover-lift animate-fade-slide-in`}
-              style={{ animationDelay: `${index * 40}ms` }}
-            >
-              <div className="p-2 rounded-lg bg-paper-3-glass backdrop-blur-sm flex items-center justify-center">
-                {stat.isImage ? (
-                  <Image src={stat.icon} alt="" width={14} height={14} aria-hidden="true" />
-                ) : (
-                  <stat.icon size={14} className="text-accent" aria-hidden="true" />
-                )}
-              </div>
-              <div className="mt-1">
-                <span className="text-[11px] font-bold text-ink-2 block uppercase tracking-wider leading-tight break-words">{stat.label}</span>
-                <span className="text-md font-extrabold text-ink mt-0.5 block leading-tight break-words">{stat.value}</span>
-              </div>
-            </div>
-          ))}
-        </div>
 
+        {/* Category Filter Chips (Integration #10) */}
+        {categories.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                setActiveCategory(null);
+                setCurrentPage(1);
+              }}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                !activeCategory
+                  ? 'bg-accent text-white border-accent shadow-sm'
+                  : 'bg-paper-2-glass backdrop-blur border-rule text-ink-2 hover:bg-paper-3 hover:text-ink'
+              }`}
+            >
+              All
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  setActiveCategory(activeCategory === cat ? null : cat);
+                  setCurrentPage(1);
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                  activeCategory === cat
+                    ? 'bg-accent text-white border-accent shadow-sm'
+                    : 'bg-paper-2-glass backdrop-blur border-rule text-ink-2 hover:bg-paper-3 hover:text-ink'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Stats Cards with Animated Counters (Integration #4) */}
         {loading ? (
-          <div className="py-20 flex justify-center">
-            <AnimatedLoader message="Fetching campaigns..." />
+          <SkeletonStats />
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            {[
+              { icon: Globe, label: "Total Pools", value: stats.totalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+              { icon: ethicon, label: "Total Raised", value: stats.totalRaised, isImage: true, isEth: true, bg: "bg-paper-2-glass backdrop-blur" },
+              { icon: Zap, label: "Active", value: stats.activeCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+              { icon: CheckCircle, label: "Completed", value: stats.completedCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+              { icon: AlertTriangle, label: "Critical", value: stats.criticalCampaigns, bg: "bg-paper-2-glass backdrop-blur" },
+              { icon: Clock, label: "High Urgency", value: stats.highUrgencyCampaigns, bg: "bg-paper-2-glass backdrop-blur" }
+            ].map((stat, index) => (
+              <div
+                key={index}
+                className={`${stat.bg} min-w-0 p-3.5 rounded-xl border border-rule flex flex-col items-center justify-center text-center gap-1 shadow-sm hover-lift animate-fade-slide-in`}
+                style={{ animationDelay: `${index * 40}ms` }}
+              >
+                <div className="p-2 rounded-lg bg-paper-3-glass backdrop-blur-sm flex items-center justify-center">
+                  {stat.isImage ? (
+                    <Image src={stat.icon} alt="" width={14} height={14} aria-hidden="true" />
+                  ) : (
+                    <stat.icon size={14} className="text-accent" aria-hidden="true" />
+                  )}
+                </div>
+                <div className="mt-1">
+                  <span className="text-[11px] font-bold text-ink-2 block uppercase tracking-wider leading-tight break-words">{stat.label}</span>
+                  <AnimatedCounter
+                    target={typeof stat.value === 'number' ? stat.value : 0}
+                    decimals={stat.isEth ? 3 : 0}
+                    suffix={stat.isEth ? ' ETH' : ''}
+                    duration={1.4}
+                    className="text-md font-extrabold text-ink mt-0.5 block leading-tight break-words"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Campaign Cards with Skeleton Loading (Integration #5) */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : filteredAndSortedCampaigns.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-rule-strong rounded-2xl bg-paper-2-glass backdrop-blur animate-scale-in">
@@ -301,10 +361,13 @@ const Dashboard = () => {
                           <Clock size={12} aria-hidden="true" />
                           {formatDate(campaign.dateCreated, campaign.createdAt)}
                         </span>
-                        <span className="hidden sm:inline text-ink-2/60">/</span>\r\n                        <span className="flex min-w-0 items-center gap-1">
+                        <span className="hidden sm:inline text-ink-2/60">/</span>
+                        <span className="flex min-w-0 items-center gap-1">
                           <Target size={12} aria-hidden="true" />
                           {campaign.category}
                         </span>
+                        {/* Verified Badge (Integration #8) */}
+                        {campaign.verified && <VerifiedBadge />}
                       </div>
 
                       <h2 className="text-md font-bold text-ink leading-snug line-clamp-2 break-words hover:text-accent transition-colors">

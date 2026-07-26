@@ -51,10 +51,12 @@ const Footer = () => {
   return (
     <footer
       ref={footerRef}
-      className={`bg-white border-t border-black/5 py-12 lg:py-16 dark:bg-[#0A0A0A] dark:border-white/10 transition-all duration-700 ease-out ${
+      className={`relative bg-surface border-t border-rule py-12 lg:py-16 transition-all duration-700 ease-out ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}
     >
+      {/* Soft gradient transition from page background into footer surface */}
+      <div className="absolute inset-x-0 -top-16 h-16 bg-gradient-to-b from-transparent to-surface pointer-events-none" aria-hidden="true" />
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           

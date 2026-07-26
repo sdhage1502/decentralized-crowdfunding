@@ -13,19 +13,6 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring-default: cubic-bezier(0.25, 1, 0.5, 1);
-  --tech-grid-color: rgba(15, 23, 42, 0.035);
-  --tech-glow-center: rgba(199, 210, 254, 0.45);
-  --tech-glow-center-fade: rgba(224, 242, 254, 0.25);
-  --tech-glow-corner: rgba(204, 251, 241, 0.45);
-  --tech-glow-corner-fade: rgba(204, 251, 241, 0.1);
-}
-
-.dark {
-  --tech-grid-color: rgba(255, 255, 255, 0.02);
-  --tech-glow-center: rgba(30, 58, 138, 0.25);
-  --tech-glow-center-fade: rgba(30, 58, 138, 0.1);
-  --tech-glow-corner: rgba(13, 148, 136, 0.12);
-  --tech-glow-corner-fade: rgba(13, 148, 136, 0.03);
 }
 
 * {
@@ -39,11 +26,7 @@ body {
   max-width: 100vw;
   overflow-x: clip;
   scroll-behavior: smooth;
-  background-color: #fbfbfa;
-  background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
-  background-size: 70px 70px;
+  background-color: rgb(var(--raw-bg));
   color: var(--color-ink);
   font-family: var(--font-body);
   font-size: 16px;
@@ -51,6 +34,41 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ───────────────────────────────────────────
+   GLOBAL BACKGROUND SYSTEM
+   Layer 1: Base surface (body background-color above)
+   Layer 2: CSS Grid + radial mask (body::before)
+   Layer 3: Ambient lighting (body::after)
+   ─────────────────────────────────────────── */
+
+/* Layer 2 — High-contrast architectural grid with intersection dots */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--color-grid-dot) 1.5px, transparent 1.5px),
+    linear-gradient(to right, var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px, 56px 56px, 56px 56px;
+  background-position: -0.5px -0.5px, 0 0, 0 0;
+  opacity: 0.95;
+}
+
+/* Layer 3 — Ambient lighting glows */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 55% at 20% 15%, var(--ambient-primary) 0%, var(--ambient-primary-fade) 45%, transparent 70%),
+    radial-gradient(ellipse 45% 55% at 85% 80%, var(--ambient-secondary) 0%, var(--ambient-secondary-fade) 45%, transparent 70%);
 }
 
 button,
@@ -356,19 +374,17 @@ iframe {
   box-shadow: 0 0 0 2px rgba(173, 198, 255, 0.2);
 }
 
-.mesh-gradient {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: radial-gradient(circle at 20% 30%, rgba(0, 112, 243, 0.05) 0%, transparent 40%),
-              radial-gradient(circle at 80% 70%, rgba(94, 106, 210, 0.05) 0%, transparent 40%);
-}
-.dark .mesh-gradient {
-  background: radial-gradient(circle at 20% 30%, rgba(77, 142, 255, 0.15) 0%, transparent 40%),
-              radial-gradient(circle at 80% 70%, rgba(87, 27, 193, 0.15) 0%, transparent 40%);
+/* Responsive background adjustments */
+@media (max-width: 768px) {
+  body::before {
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 30%, black 20%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 30%, black 20%, transparent 100%);
+  }
+
+  body::after {
+    opacity: 0.6;
+  }
 }
 
 .drop-zone-pulse {
@@ -400,4 +416,85 @@ iframe {
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* Apple Design & High-End Visual Design Utilities */
+.apple-glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.dark .apple-glass {
+  background: rgba(23, 23, 23, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Double-Bezel (Doppelrand) Hardware Architecture */
+.double-bezel-shell {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0.375rem;
+  border-radius: 1.5rem;
+}
+
+.dark .double-bezel-shell {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.375rem;
+  border-radius: 1.5rem;
+}
+
+.double-bezel-core {
+  background: var(--color-paper-2);
+  border-radius: calc(1.5rem - 0.375rem);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.7), 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.dark .double-bezel-core {
+  background: var(--color-paper-2);
+  border-radius: calc(1.5rem - 0.375rem);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.08), 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Skeleton shimmer animation ──────────────────────────────── */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.skeleton-shimmer {
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 60%,
+    transparent 100%
+  );
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 60%,
+    transparent 100%
+  );
 }

@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 
 /**
@@ -60,4 +60,21 @@ export const updateCampaignStats = async (id, amount) => {
   // Return the latest snapshot so the caller can update local state
   const updated = await getDoc(docRef);
   return { ...updated.data(), id };
+};
+
+/**
+ * Subscribe to real-time updates for a single campaign.
+ * Returns an unsubscribe function.
+ *
+ * @param {string} id - Firestore document ID
+ * @param {Function} callback - Called with updated campaign data
+ * @returns {Function} unsubscribe
+ */
+export const subscribeToCampaign = (id, callback) => {
+  const docRef = doc(db, "campaigns", id);
+  return onSnapshot(docRef, (snapshot) => {
+    if (snapshot.exists()) {
+      callback({ ...snapshot.data(), id });
+    }
+  });
 };
